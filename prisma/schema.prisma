@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- ENUMS (STRICT TYPING) ---
+enum Role {
+  CUSTOMER
+  ADMIN
+  SUPPORT // Optional: good for future team expansion
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentMethod {
+  JAZZCASH
+  EASYPAISA
+  COD
+  CARD
+}
+
+// --- USER MANAGEMENT & AUTH ---
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // Store Hashed Passwords only!
+  name      String?
+  role      Role     @default(CUSTOMER) 
+  
+  // Auth & Security Fields
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Password Reset Logic
+  resetToken       String?
+  resetTokenExpiry DateTime?
+
+  // Relations
+  orders    Order[]
+  wishlist  WishlistItem[] 
+  reviews   Review[]
+  addresses Address[] 
+}
+
+// --- PRODUCT CATALOG & INVENTORY ---
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  price       Decimal
+  stock       Int
+  category    String
+  
+  // [NEW] Supports Multiple Images
+  images      ProductImage[] 
+
+  // Advanced Inventory Fields
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt        
+  barcode     String?  @unique          
+  expiryDate  DateTime?                 
+  vendor      String?                   
+  origin      String   @default("Local") 
+
+  // Relations
+  orderItems   OrderItem[] 
+  wishlistedBy WishlistItem[]
+  reviews      Review[]
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  url       String
+  altText   String?  // Good for SEO
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// --- ORDER SYSTEM ---
+model Order {
+  id             String   @id @default(uuid())
+  
+  // User Link (Optional for Guest Checkout)
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id])
+  
+  // Snapshot of Shipping Details (Immutable after order)
+  guestName      String
+  guestEmail     String   @default("guest@example.com")
+  address        String
+  city           String
+  postalCode     String
+  phone          String
+  
+  // Payment & Status
+  status         OrderStatus   @default(PENDING)
+  totalAmount    Decimal
+  
+  // Payment Details
+  paymentMethod  PaymentMethod 
+  paymentPhone   String?  
+  transactionId  String?  
+  isPaid         Boolean  @default(false)
+  
+  // [NEW] Coupon Linking
+  couponId       String?
+  coupon         Coupon?  @relation(fields: [couponId], references: [id])
+
+  items          OrderItem[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  
+  quantity  Int
+  price     Decimal // Snapshot of price at purchase time
+}
+
+// --- USER DASHBOARD ---
+model Address {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  fullName   String
+  street     String
+  city       String
+  postalCode String
+  country    String   @default("Pakistan")
+  phone      String
+  isDefault  Boolean  @default(false)
+}
+
+// --- MARKETING & REVIEWS ---
+model WishlistItem {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int      
+  comment   String?  
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+}
+
+model Coupon {
+  id        String    @id @default(uuid())
+  code      String    @unique
+  discount  Int       // Percentage
+  isActive  Boolean   @default(true)
+  expiresAt DateTime?
+  
+  // [NEW] Track usage history
+  orders    Order[]   
+}
