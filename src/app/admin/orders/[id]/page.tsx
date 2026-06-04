@@ -1,12 +1,13 @@
 import { prisma } from "@/lib/prisma"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { formatPrice } from "@/lib/shop-utils"
 import { updateOrderStatus } from "@/app/actions/admin"
+import DeleteOrderButton from "@/components/admin/DeleteOrderButton"
 import PageAnimation from "@/components/PageAnimation" // ✅ Import Animation
 import { 
   ArrowLeft, Calendar, Mail, MapPin, Phone, 
-  CreditCard, Package, Truck, CheckCircle, XCircle 
+  CreditCard, Package, Truck, CheckCircle, XCircle, Trash2 
 } from "lucide-react"
 
 interface PageProps {
@@ -78,6 +79,7 @@ export default async function OrderDetailsPage({ params }: PageProps) {
                   <XCircle className="w-4 h-4" /> Cancel
                 </button>
               </form>
+              <DeleteOrderButton orderId={order.id} />
           </div>
         </div>
 

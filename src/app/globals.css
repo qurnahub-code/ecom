@@ -6,7 +6,7 @@
 
 :root {
   /* LIGHT MODE (Strictly White/Zinc) */
-  --background: hsl(0 0% 100%);
+  --background: hsl(240 5% 97.5%);
   --foreground: hsl(240 10% 3.9%); /* Zinc-950 */
 
   --card: hsl(0 0% 100%);

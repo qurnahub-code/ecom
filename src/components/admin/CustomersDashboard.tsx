@@ -3,9 +3,10 @@
 import { useState, useMemo } from "react"
 import { 
   Search, Mail, MoreHorizontal, Filter, 
-  ArrowUpDown, Crown, UserCheck, UserPlus 
+  ArrowUpDown, Crown, UserCheck, UserPlus, Trash2
 } from "lucide-react"
 import Link from "next/link"
+import { updateUserRole, deleteUser } from "@/app/actions/admin"
 
 export default function CustomersDashboard({ initialUsers }: { initialUsers: any[] }) {
   const [search, setSearch] = useState("")
@@ -147,12 +148,47 @@ export default function CustomersDashboard({ initialUsers }: { initialUsers: any
 
                     {/* Actions */}
                     <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                         <button className="p-2 hover:bg-background border border-transparent hover:border-border rounded-lg transition-colors" title="Email Customer">
-                           <Mail className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-                         </button>
-                         <button className="p-2 hover:bg-background border border-transparent hover:border-border rounded-lg transition-colors" title="View Details">
-                           <MoreHorizontal className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                      <div className="flex justify-end items-center gap-3">
+                         {/* Role Selector */}
+                         <select 
+                           value={user.role} 
+                           onChange={async (e) => {
+                             const confirmChange = window.confirm(`Are you sure you want to change ${user.name}'s role to ${e.target.value}?`)
+                             if (confirmChange) {
+                               const res = await updateUserRole(user.id, e.target.value)
+                               if (res.success) {
+                                 alert("Role updated successfully!")
+                                 window.location.reload()
+                               } else {
+                                 alert(res.error || "Failed to update role")
+                               }
+                             }
+                           }}
+                           className="bg-background border border-border text-foreground text-xs rounded-lg px-2 py-1 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none cursor-pointer"
+                         >
+                           <option value="CUSTOMER">Customer</option>
+                           <option value="ADMIN">Admin</option>
+                           <option value="SUPPORT">Support</option>
+                         </select>
+
+                         {/* Delete Button */}
+                         <button 
+                           onClick={async () => {
+                             const confirmDelete = window.confirm(`Are you sure you want to delete customer ${user.name}? This action is irreversible.`)
+                             if (confirmDelete) {
+                               const res = await deleteUser(user.id)
+                               if (res.success) {
+                                 alert("Customer deleted successfully!")
+                                 window.location.reload()
+                               } else {
+                                 alert(res.error || "Failed to delete customer")
+                               }
+                             }
+                           }}
+                           className="p-2 hover:bg-red-50 dark:hover:bg-red-950/20 border border-transparent hover:border-red-200 dark:hover:border-red-800 rounded-lg transition-colors group/delete" 
+                           title="Delete Customer"
+                         >
+                           <Trash2 className="w-4 h-4 text-muted-foreground hover:text-red-600 dark:hover:text-red-400" />
                          </button>
                       </div>
                     </td>

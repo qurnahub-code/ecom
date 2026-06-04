@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { Role } from "@prisma/client"
 import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
 
@@ -187,4 +188,52 @@ export async function reorderStock(productId: string, vendor: string) {
   
   // In a real app, you might update a "status" field on the product or create a "PurchaseOrder" record
   return { success: true, message: `Order placed with ${vendor}` }
+}
+
+// --- USER CRUD ACTIONS ---
+
+// 1. Delete User
+export async function deleteUser(id: string) {
+  try {
+    await prisma.user.delete({ where: { id } })
+    revalidatePath('/admin/users')
+    revalidatePath('/admin/customers')
+    return { success: true }
+  } catch (error) {
+    console.error("Delete User Error:", error)
+    return { success: false, error: "Failed to delete user." }
+  }
+}
+
+// 2. Update User Role
+export async function updateUserRole(id: string, newRole: string) {
+  try {
+    await prisma.user.update({
+      where: { id },
+      data: { role: newRole as Role }
+    })
+    revalidatePath('/admin/users')
+    revalidatePath('/admin/customers')
+    return { success: true }
+  } catch (error) {
+    console.error("Update User Role Error:", error)
+    return { success: false, error: "Failed to update user role." }
+  }
+}
+
+// --- ORDER CRUD ACTIONS ---
+
+// Delete Order
+export async function deleteOrder(id: string) {
+  try {
+    // Delete order items first (if cascade delete is not set on db)
+    await prisma.orderItem.deleteMany({ where: { orderId: id } })
+    // Delete order
+    await prisma.order.delete({ where: { id } })
+    revalidatePath('/admin/orders')
+    return { success: true }
+  } catch (error) {
+    console.error("Delete Order Error:", error)
+    return { success: false, error: "Failed to delete order." }
+  }
 }
