@@ -33,7 +33,7 @@ export default function AdminSidebar() {
     }`
 
   return (
-    <aside className="w-64 bg-background border-r border-border flex flex-col h-screen sticky top-0 overflow-y-auto">
+    <aside className="w-64 bg-background border-r border-border hidden md:flex flex-col h-screen sticky top-0 overflow-y-auto">
       
       {/* 1. HEADER: The "Home" Button */}
       {/* Clicking this takes you to the Main Admin Page (Charts) */}
