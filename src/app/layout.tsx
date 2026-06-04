@@ -6,7 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { CartProvider } from "@/context/CartContext";
 import { ThemeProvider } from "@/components/theme-provider";
 import { NextAuthProvider } from "@/components/providers/NextAuthProvider";
-import { Analytics } from "@vercel/analytics/next";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
