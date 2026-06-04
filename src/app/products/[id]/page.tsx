@@ -1,120 +1,171 @@
 import { getProductById } from "@/modules/products/product.service"
 import { notFound } from "next/navigation"
 import { AddToCartButton } from "@/components/ui/AddToCartButton"
-import { WishlistButton } from "@/components/ui/WishlistButton" // [NEW] Import Component
-import { getServerSession } from "next-auth" // [NEW] Import Session
-import { authOptions } from "@/app/api/auth/[...nextauth]/route" // [NEW] Import Auth Options
-import { prisma } from "@/lib/prisma" // [NEW] Import DB
-import { ReviewList } from "@/components/products/ReviewList" // [NEW] Import ReviewList Component
+import { WishlistButton } from "@/components/ui/WishlistButton" 
+import { getServerSession } from "next-auth" 
+import { authOptions } from "@/lib/auth" 
+import { prisma } from "@/lib/prisma" 
+import { ReviewList } from "@/components/products/ReviewList" 
+import { ReviewForm } from "@/components/products/ReviewForm"
+import { ProductSupportChat } from "@/components/products/ProductSupportChat"
+import { formatPrice } from "@/lib/shop-utils"
+import { Package, Check, ShieldCheck, ArrowRight, Sparkles } from "lucide-react"
+import Link from "next/link"
 
 interface ProductPageProps {
   params: Promise<{ id: string }>
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  // 1. Unwrap the params
   const { id } = await params
-
-  // 2. Fetch the raw data from database
-  const product = await getProductById(id)
-
-  // 3. Handle 404
-  if (!product) {
-    notFound()
-  }
-
-  // 4. [NEW] Check Wishlist Status Server-Side
   const session = await getServerSession(authOptions)
+
+  // 1. Fetch Product
+  const product = await getProductById(id)
+  if (!product) notFound()
+
+  // 2. Fetch Suggestions
+  const suggestedProducts = await prisma.product.findMany({
+    where: { category: product.category, NOT: { id: product.id } },
+    take: 4,
+    include: { images: true }
+  })
+
+  // 3. User Checks (Wishlist & Existing Review)
   let isWishlisted = false
+  let existingReview = null
 
   if (session?.user?.email) {
-    // We need the User ID to check the wishlist relation
     const user = await prisma.user.findUnique({ 
-      where: { email: session.user.email },
-      select: { id: true } 
+        where: { email: session.user.email }, 
+        select: { id: true } 
     })
 
     if (user) {
-      const wishlistItem = await prisma.wishlistItem.findUnique({
-        where: {
-          userId_productId: {
-            userId: user.id,
-            productId: id
-          }
-        }
+      const wishlistEntry = await prisma.wishlistItem.findUnique({
+        where: { userId_productId: { userId: user.id, productId: id } }
       })
-      isWishlisted = !!wishlistItem
+      isWishlisted = !!wishlistEntry
+
+      // Check if user already reviewed this product
+      existingReview = await prisma.review.findFirst({
+        where: { userId: user.id, productId: id }
+      })
     }
   }
 
-  // 5. Create a "Clean" object for the Client Component
   const productForCart = {
     id: product.id,
     name: product.name,
-    price: product.price.toNumber(),
+    price: product.price,
     imageUrl: product.imageUrl,
     category: product.category
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+    <div className="relative min-h-screen bg-gray-50 dark:bg-zinc-950 text-foreground transition-colors duration-300 font-sans">
+      
+      {/* Background */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none z-0 fixed">
+         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-[0.03] dark:opacity-[0.05]"></div>
+         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] bg-indigo-200/40 dark:bg-indigo-900/20 animate-pulse" />
+      </div>
 
-          {/* LEFT: Image Section */}
-          <div className="bg-gray-100 rounded-2xl overflow-hidden aspect-square relative border border-gray-200">
-            {productForCart.imageUrl ? (
-              <img 
-                src={productForCart.imageUrl} 
-                alt={productForCart.name} 
-                className="w-full h-full object-cover object-center"
-              />
-            ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400">
-              No Image Available
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start mb-24">
+          
+          {/* --- LEFT: PRODUCT IMAGE --- */}
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-3xl overflow-hidden aspect-square relative shadow-2xl p-2 group">
+            <div className="w-full h-full rounded-2xl overflow-hidden relative bg-gray-100 dark:bg-zinc-800">
+                {productForCart.imageUrl ? (
+                <img src={productForCart.imageUrl} alt={productForCart.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-gray-400"><Package className="w-12 h-12 mb-2 opacity-50" />No Image</div>
+                )}
             </div>
-            )}
           </div>
 
-          {/* RIGHT: Details Section */}
+          {/* --- RIGHT: PRODUCT DETAILS --- */}
           <div>
-            <div className="mb-6">
-              <span className="text-sm text-indigo-600 font-bold uppercase tracking-wider">
+            <div className="mb-8">
+              <span className="inline-block py-1 px-3 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 text-xs font-bold uppercase tracking-wider mb-4 border border-indigo-200 dark:border-indigo-500/30">
                 {product.category}
               </span>
-              <h1 className="text-4xl font-extrabold text-gray-900 mt-2">
+              <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mt-2 leading-tight">
                 {product.name}
               </h1>
-              <p className="text-2xl text-gray-900 mt-4 font-bold">
-                ${Number(product.price).toFixed(2)}
+              <p className="text-4xl text-gray-900 dark:text-white font-black mt-6">
+                {formatPrice(product.price)}
               </p>
             </div>
 
-            <p className="text-gray-600 mb-8 leading-relaxed">
-              {product.description}
-            </p>
+            <p className="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed text-lg">{product.description}</p>
 
-            {/* Action Buttons */}
-            <div className="flex gap-4">
-              <AddToCartButton product={productForCart} />
-              
-              {/* [UPDATED] Replaced static button with functional component */}
-              <WishlistButton 
-                productId={product.id} 
-                initialIsActive={isWishlisted} 
-              />
+            <div className="flex gap-6 mb-8 py-6 border-y border-gray-100 dark:border-white/10">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"><Check className="w-5 h-5 text-green-500" /> Fast Delivery</div>
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"><ShieldCheck className="w-5 h-5 text-indigo-500" /> 1 Year Warranty</div>
             </div>
 
-            {/* Extra Info */}
-            <div className="mt-10 border-t border-gray-200 pt-6">
-              <p className="text-sm text-gray-500">
-                Stock Available: <span className="font-medium text-gray-900">{product.stock} units</span>
-              </p>
+            {/* Buttons */}
+            <div className="flex flex-col gap-3 mb-10">
+               <div className="flex gap-4">
+                  <AddToCartButton product={productForCart} />
+                  <WishlistButton productId={product.id} initialIsActive={isWishlisted} />
+               </div>
+               <ProductSupportChat productName={product.name} />
             </div>
 
-            <ReviewList productId={product.id} />
+            {/* --- REVIEWS SECTION (EMBEDDED) --- */}
+            <div className="bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-3xl p-6 md:p-8">
+                 <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Customer Reviews</h3>
+                    <Link href={`/products/${product.id}/reviews`} className="text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
+                        See All <ArrowRight className="w-4 h-4" />
+                    </Link>
+                 </div>
+                 
+                 {/* Logic: If logged in, show Form. If reviewed, Form will be in Edit Mode */}
+                 {session ? (
+                    <ReviewForm 
+                        productId={product.id} 
+                        initialRating={existingReview?.rating || 0}
+                        initialComment={existingReview?.comment || ""}
+                        initialImages={existingReview?.images || []}
+                        isEditing={!!existingReview} // True if review exists
+                    />
+                 ) : (
+                    <div className="bg-gray-50 dark:bg-zinc-800/50 p-4 rounded-xl mb-8 text-center border border-gray-100 dark:border-white/5">
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">
+                            Please <Link href="/login" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">log in</Link> to write a review.
+                        </p>
+                    </div>
+                 )}
+                 
+                 <ReviewList productId={product.id} />
+            </div>
           </div>
         </div>
+
+        {/* --- SUGGESTED PRODUCTS --- */}
+        {suggestedProducts.length > 0 && (
+          <div className="border-t border-gray-200 dark:border-white/10 pt-16">
+             <div className="flex items-center gap-3 mb-8"><Sparkles className="w-6 h-6 text-indigo-500" /><h2 className="text-3xl font-black text-gray-900 dark:text-white">You Might Also Like</h2></div>
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+               {suggestedProducts.map((p) => (
+                   <Link key={p.id} href={`/products/${p.id}`} className="group bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/5 rounded-3xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                     <div className="aspect-square bg-gray-100 dark:bg-zinc-800 relative overflow-hidden">
+                       {p.images?.[0]?.url ? <img src={p.images[0].url} alt={p.name} className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700" /> : <div className="absolute inset-0 flex items-center justify-center text-gray-400"><Package className="w-10 h-10 opacity-20" /></div>}
+                     </div>
+                     <div className="p-5">
+                       <p className="text-xs font-bold text-indigo-600 uppercase mb-1">{p.category}</p>
+                       <h3 className="font-bold text-gray-900 dark:text-white truncate">{p.name}</h3>
+                       <p className="text-xl font-black text-gray-900 dark:text-white mt-2">{formatPrice(Number(p.price))}</p>
+                     </div>
+                   </Link>
+               ))}
+             </div>
+          </div>
+        )}
       </div>
     </div>
   )

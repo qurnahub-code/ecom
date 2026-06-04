@@ -2,10 +2,10 @@
 
 import { prisma } from "@/lib/prisma"
 import { getServerSession } from "next-auth"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { authOptions } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 
-// 1. Get Dashboard Data (One big fetch for efficiency)
+// 1. Get Dashboard Data
 export async function getUserDashboard() {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) return null
@@ -25,26 +25,31 @@ export async function getUserDashboard() {
 
   if (!user) return null
 
-  // Calculate "Pending Reviews" (Items bought but not reviewed)
-  // 1. Get all bought product IDs
+  // Calculate "Pending Reviews"
   const boughtProductIds = new Set<string>()
   user.orders.forEach(order => {
     order.items.forEach(item => boughtProductIds.add(item.productId))
   })
 
-  // 2. Get reviewed product IDs
   const reviewedProductIds = new Set(user.reviews.map(r => r.productId))
-
-  // 3. Find difference
   const pendingReviewIds = [...boughtProductIds].filter(id => !reviewedProductIds.has(id))
   
-  // 4. Fetch details for these products
   const pendingReviews = await prisma.product.findMany({
     where: { id: { in: pendingReviewIds } },
-    select: { id: true, name: true, imageUrl: true }
+    select: { 
+      id: true, 
+      name: true, 
+      images: { take: 1, select: { url: true } } 
+    }
   })
 
-  return { ...user, pendingReviews }
+  const formattedPendingReviews = pendingReviews.map(p => ({
+    id: p.id,
+    name: p.name,
+    imageUrl: p.images[0]?.url || '/placeholder.jpg'
+  }))
+
+  return { ...user, pendingReviews: formattedPendingReviews }
 }
 
 // 2. Add Address
@@ -63,7 +68,7 @@ export async function addAddress(formData: FormData) {
       city: formData.get("city") as string,
       postalCode: formData.get("postalCode") as string,
       phone: formData.get("phone") as string,
-      country: "USA" // Default
+      country: "Pakistan"
     }
   })
 
@@ -71,7 +76,7 @@ export async function addAddress(formData: FormData) {
   return { success: true }
 }
 
-// 3. Add Payment Method (Mock)
+// 3. Add Payment Method
 export async function addPaymentMethod(formData: FormData) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) return { success: false }
@@ -79,11 +84,13 @@ export async function addPaymentMethod(formData: FormData) {
   const user = await prisma.user.findUnique({ where: { email: session.user.email } })
   if (!user) return { success: false }
 
+  const cardNumber = formData.get("cardNumber") as string
+  
   await prisma.paymentMethod.create({
     data: {
       userId: user.id,
-      brand: formData.get("brand") as string,
-      last4: (formData.get("cardNumber") as string).slice(-4),
+      type: (formData.get("brand") as string) || "Credit Card", 
+      last4: cardNumber.slice(-4),
       expiry: formData.get("expiry") as string
     }
   })
@@ -92,24 +99,50 @@ export async function addPaymentMethod(formData: FormData) {
   return { success: true }
 }
 
-// 4. Submit Review
-export async function submitReview(productId: string, rating: number, comment: string) {
+// 4. Submit OR Edit Review (UPSERT LOGIC)
+export async function submitReview(
+  productId: string, 
+  rating: number, 
+  comment: string,
+  images: string[] = []
+) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) return { success: false }
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email } })
   if (!user) return { success: false }
 
-  await prisma.review.create({
-    data: {
+  // Check if review already exists
+  const existingReview = await prisma.review.findFirst({
+    where: {
       userId: user.id,
-      productId,
-      rating,
-      comment
+      productId: productId
     }
   })
 
+  if (existingReview) {
+    // UPDATE existing review
+    await prisma.review.update({
+      where: { id: existingReview.id },
+      data: { rating, comment, images }
+    })
+  } else {
+    // CREATE new review
+    await prisma.review.create({
+      data: {
+        userId: user.id,
+        productId,
+        rating,
+        comment,
+        images
+      }
+    })
+  }
+
+  // Refresh pages to show updated data
   revalidatePath('/dashboard')
   revalidatePath(`/products/${productId}`)
+  revalidatePath(`/products/${productId}/reviews`)
+
   return { success: true }
 }

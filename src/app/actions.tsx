@@ -21,20 +21,16 @@ export async function getSearchSuggestions(query: string) {
       name: true,
       category: true,
       price: true,
-      // [FIX] Select the first image from the relation instead of 'imageUrl'
       images: {
         take: 1,
-        select: {
-          url: true
-        }
+        select: { url: true }
       }
     }
   })
 
-  // [FIX] Map the result to flatten the image URL for the frontend
   return products.map(product => ({
     ...product,
-    imageUrl: product.images[0]?.url || '/placeholder.jpg' // Fallback if empty
+    imageUrl: product.images[0]?.url || '/placeholder.jpg'
   }))
 }
 
@@ -50,7 +46,7 @@ export async function searchProducts(params: {
   const where: any = {
     price: {
       gte: minPrice || 0,
-      lte: maxPrice || 100000
+      lte: maxPrice || 1000000 // Increased max limit slightly
     }
   }
 
@@ -63,18 +59,28 @@ export async function searchProducts(params: {
     ]
   }
 
+  // ✅ FIX: Updated sorting logic to match SearchPage.tsx
   let orderBy: any = {}
-  if (sort === 'Price Low-High') orderBy = { price: 'asc' }
-  else if (sort === 'Price High-Low') orderBy = { price: 'desc' }
-  else if (sort === 'Newest') orderBy = { createdAt: 'desc' }
-  else orderBy = { id: 'asc' }
+  
+  switch (sort) {
+    case 'price_asc':
+      orderBy = { price: 'asc' }
+      break
+    case 'price_desc':
+      orderBy = { price: 'desc' }
+      break
+    case 'newest':
+      orderBy = { createdAt: 'desc' }
+      break
+    default:
+      orderBy = { createdAt: 'desc' } // Default to newest if no valid sort provided
+  }
 
   const products = await prisma.product.findMany({
     where,
     orderBy,
     include: {
-      reviews: true,
-      // [FIX] Include images so we can display them
+      reviews: { select: { rating: true } }, // Optimize: only fetch rating
       images: {
         take: 1
       }
@@ -84,7 +90,6 @@ export async function searchProducts(params: {
   return products.map(p => ({
     ...p,
     price: Number(p.price),
-    // [FIX] Map the first image url to 'imageUrl' so your UI components keep working
     imageUrl: p.images[0]?.url || '/placeholder.jpg',
     rating: p.reviews.length > 0 
       ? p.reviews.reduce((acc, r) => acc + r.rating, 0) / p.reviews.length 

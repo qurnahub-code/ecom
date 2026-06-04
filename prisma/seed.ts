@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import { PrismaClient } from '@prisma/client'
 import * as bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -6,8 +6,7 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Starting database seed...')
 
-  // 1. CLEANUP: Remove old data to prevent errors on re-runs
-  // (Deleting in specific order to handle foreign keys)
+  // 1. CLEANUP
   await prisma.review.deleteMany()
   await prisma.wishlistItem.deleteMany()
   await prisma.orderItem.deleteMany()
@@ -17,11 +16,11 @@ async function main() {
   await prisma.address.deleteMany()
   await prisma.user.deleteMany()
   await prisma.coupon.deleteMany()
+  // await prisma.job.deleteMany() // Uncomment if you have the Job table
 
   console.log('🧹 Database cleaned.')
 
   // 2. CREATE ADMIN USER
-  // We hash the password so it works with your login logic later
   const hashedPassword = await bcrypt.hash('admin123', 10)
 
   const admin = await prisma.user.create({
@@ -29,14 +28,13 @@ async function main() {
       email: 'admin@store.com',
       password: hashedPassword,
       name: 'Super Admin',
-      role: Role.ADMIN, // Uses the strictly typed Enum
+      role: 'ADMIN', // ✅ Using String Literal avoids TS errors
     },
   })
 
-  console.log(`👤 Admin created: ${admin.email} (Password: admin123)`)
+  console.log(`👤 Admin created: ${admin.email}`)
 
   // 3. CREATE PRODUCTS
-  // Notice how we create multiple images using the relation
   const product1 = await prisma.product.create({
     data: {
       name: 'Wireless Gaming Mouse',
@@ -78,15 +76,14 @@ async function main() {
   await prisma.coupon.create({
     data: {
       code: 'WELCOME10',
-      discount: 10, // 10% off
-      expiresAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)), // Expires in 1 year
+      discount: 10,
+      expiresAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
     },
   })
 
-  console.log('🎟️ Coupon created: WELCOME10')
+  console.log('🎟️ Coupon created')
 
-  // 5. CREATE A SAMPLE ORDER (JazzCash)
-  // This helps you test the dashboard UI immediately
+  // 5. CREATE A SAMPLE ORDER
   await prisma.order.create({
     data: {
       guestName: 'Ali Khan',
@@ -96,8 +93,8 @@ async function main() {
       postalCode: '54000',
       phone: '03001234567',
       totalAmount: 4500.00,
-      status: OrderStatus.PROCESSING,
-      paymentMethod: PaymentMethod.JAZZCASH,
+      status: 'PROCESSING',       // ✅ String Literal
+      paymentMethod: 'JAZZCASH',  // ✅ String Literal
       isPaid: true,
       transactionId: 'TXN-99887766',
       items: {
@@ -112,7 +109,7 @@ async function main() {
     },
   })
 
-  console.log('🛒 Sample JazzCash order created.')
+  console.log('🛒 Sample order created.')
 }
 
 main()

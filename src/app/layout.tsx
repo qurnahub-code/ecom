@@ -4,7 +4,8 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { CartProvider } from "@/context/CartContext";
-import { NextAuthProvider } from "@/components/providers/NextAuthProvider"; // [NEW] Import
+import { ThemeProvider } from "@/components/theme-provider";
+import { NextAuthProvider } from "@/components/providers/NextAuthProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,20 +20,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} min-h-screen bg-gray-50 flex flex-col`}>
-        {/* [NEW] Wrap everything in NextAuthProvider */}
-        <NextAuthProvider>
-          <CartProvider>
-            <Navbar />
-            
-            <main className="flex-grow">
-              {children}
-            </main>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} min-h-screen bg-background text-foreground flex flex-col`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <NextAuthProvider>
+            <CartProvider>
+              <Navbar />
+              
+              <main className="flex-grow">
+                {children}
+              </main>
 
-            <Footer />
-          </CartProvider>
-        </NextAuthProvider>
+              <Footer />
+            </CartProvider>
+          </NextAuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

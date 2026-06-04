@@ -1,7 +1,6 @@
-// src/app/order-confirmation/[id]/page.tsx
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
-import { CheckCircle, Copy, Home, Printer } from "lucide-react"
+import { CheckCircle, Copy, Home, Package, ArrowRight } from "lucide-react"
 import { notFound } from "next/navigation"
 
 interface PageProps {
@@ -11,7 +10,7 @@ interface PageProps {
 export default async function OrderConfirmationPage({ params }: PageProps) {
   const { id } = await params
 
-  // 1. Fetch the Order
+  // 1. Fetch the Order directly from DB (Fast & Secure)
   const order = await prisma.order.findUnique({
     where: { id },
     include: { items: { include: { product: true } } }
@@ -20,98 +19,90 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
   if (!order) notFound()
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        
-        {/* SUCCESS HEADER */}
-        <div className="bg-white p-8 rounded-t-2xl shadow-sm border-b border-gray-100 text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-green-600" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900">Order Placed Successfully!</h1>
-          <p className="text-gray-500 mt-2">Order ID: <span className="font-mono text-gray-900">#{order.id.slice(0, 8)}</span></p>
-        </div>
+    <div className="relative min-h-screen bg-gray-50 dark:bg-zinc-950 text-foreground transition-colors duration-300 font-sans flex items-center justify-center py-12">
+      
+      {/* Background Animation */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none z-0 fixed">
+         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-[0.03] dark:opacity-[0.05]"></div>
+         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] bg-indigo-200/40 dark:bg-indigo-900/20 animate-pulse" />
+      </div>
 
-        {/* BANKING INSTRUCTIONS (Only show if payment was Bank Transfer) */}
-        {order.paymentMethod === 'bank' && (
-          <div className="bg-indigo-600 text-white p-8 shadow-sm relative overflow-hidden">
-            <div className="relative z-10">
-              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                🏦 Payment Required
-              </h2>
-              <p className="text-indigo-100 mb-6 text-sm">
-                Please transfer the total amount to the account below. Your order will be shipped once payment is received.
-              </p>
-              
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-indigo-200 text-xs uppercase tracking-wider font-semibold">Bank Name</p>
-                    <p className="text-xl font-bold mt-1">Local City Bank</p>
-                  </div>
-                  <div>
-                    <p className="text-indigo-200 text-xs uppercase tracking-wider font-semibold">Account Title</p>
-                    <p className="text-xl font-bold mt-1">E-Com Platform Ltd</p>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <p className="text-indigo-200 text-xs uppercase tracking-wider font-semibold">Account Number (IBAN)</p>
-                    <div className="flex items-center gap-3 mt-1 group cursor-pointer">
-                      <p className="text-2xl font-mono font-bold">PK36 MEZN 0000 1234 5678 90</p>
-                      <Copy className="w-5 h-5 opacity-50 group-hover:opacity-100 transition" />
+      <div className="relative z-10 max-w-3xl w-full px-4 sm:px-6">
+        
+        {/* SUCCESS CARD */}
+        <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl shadow-2xl overflow-hidden">
+          
+          {/* Header */}
+          <div className="p-10 text-center border-b border-gray-100 dark:border-white/5 bg-gradient-to-b from-green-50/50 to-transparent dark:from-green-900/10">
+            <div className="w-20 h-20 bg-green-100 dark:bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-500/20">
+              <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-2">Order Confirmed!</h1>
+            <p className="text-gray-500 dark:text-gray-400">
+              Order ID: <span className="font-mono font-bold text-gray-900 dark:text-white">#{order.id.slice(0, 8).toUpperCase()}</span>
+            </p>
+          </div>
+
+          {/* Payment Instructions (Dynamic) */}
+          {(order.paymentMethod === 'JAZZCASH' || order.paymentMethod === 'EASYPAISA' || order.paymentMethod === 'COD') && (
+            <div className="bg-indigo-600 dark:bg-indigo-900/50 text-white p-8 relative overflow-hidden">
+              <div className="relative z-10">
+                <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  Payment Status: <span className="opacity-80">{order.paymentMethod}</span>
+                </h2>
+                <p className="text-indigo-100 text-sm leading-relaxed">
+                  {order.paymentMethod === 'COD' 
+                    ? "Please have the exact amount ready for the rider upon delivery."
+                    : "If you haven't sent the payment yet, please complete the transfer using the details provided during checkout."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Order Items */}
+          <div className="p-8 md:p-10">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+              <Package className="w-5 h-5 text-indigo-500" /> Summary
+            </h3>
+            
+            <div className="space-y-4 mb-8">
+              {order.items.map((item) => (
+                <div key={item.id} className="flex justify-between items-center py-4 border-b border-gray-100 dark:border-white/5 last:border-0">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gray-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center text-[10px] text-gray-400">IMG</div>
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-white">{item.product.name}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Qty: {item.quantity}</p>
                     </div>
                   </div>
+                  <p className="font-bold text-gray-900 dark:text-white font-mono">${Number(item.price).toFixed(2)}</p>
                 </div>
-              </div>
+              ))}
             </div>
-            
-            {/* Background Decoration */}
-            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
-          </div>
-        )}
 
-        {/* ORDER SUMMARY */}
-        <div className="bg-white p-8 rounded-b-2xl shadow-sm border border-t-0 border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Order Summary</h3>
-          
-          <div className="space-y-4 mb-8">
-            {order.items.map((item) => (
-              <div key={item.id} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400">
-                    Img
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{item.product.name}</p>
-                    <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
-                  </div>
-                </div>
-                <p className="font-bold text-gray-900">${Number(item.price).toFixed(2)}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex justify-between items-center pt-6 border-t border-gray-100">
-            <div className="text-gray-500">
-              <p className="text-sm">Shipping to:</p>
-              <p className="font-medium text-gray-900">{order.address}, {order.city}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-500">Total Amount</p>
-              <p className="text-3xl font-bold text-gray-900">${Number(order.totalAmount).toFixed(2)}</p>
+            <div className="flex justify-between items-center pt-4">
+               <div>
+                 <p className="text-xs uppercase font-bold text-gray-400">Shipping Address</p>
+                 <p className="text-sm font-medium text-gray-900 dark:text-white mt-1">{order.address}, {order.city}</p>
+               </div>
+               <div className="text-right">
+                 <p className="text-xs uppercase font-bold text-gray-400">Total Amount</p>
+                 <p className="text-3xl font-black text-gray-900 dark:text-white">${Number(order.totalAmount).toFixed(2)}</p>
+               </div>
             </div>
           </div>
 
-          {/* ACTION BUTTONS */}
-          <div className="mt-10 flex gap-4">
-            <Link href="/" className="flex-1 bg-black text-white py-3 rounded-xl font-bold text-center hover:bg-gray-800 transition flex items-center justify-center gap-2">
+          {/* Buttons */}
+          <div className="p-8 border-t border-gray-100 dark:border-white/10 flex gap-4">
+            <Link href="/" className="flex-1 bg-gray-900 dark:bg-white text-white dark:text-black py-4 rounded-xl font-bold text-center hover:opacity-90 transition-all flex items-center justify-center gap-2">
               <Home className="w-4 h-4" /> Return Home
             </Link>
-            <button className="px-6 py-3 border border-gray-200 rounded-xl font-bold text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
-              <Printer className="w-4 h-4" /> Print
-            </button>
+            <Link href="/products" className="flex-1 bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white py-4 rounded-xl font-bold text-center hover:bg-gray-200 dark:hover:bg-white/20 transition-all flex items-center justify-center gap-2">
+              Shop More <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
-        </div>
 
+        </div>
       </div>
     </div>
   )

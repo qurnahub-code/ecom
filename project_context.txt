@@ -103,13 +103,15 @@ FILE PATH: .\package-lock.json
         "lucide-react": "^0.555.0",
         "next": "16.0.5",
         "next-auth": "^4.24.13",
+        "next-themes": "^0.4.6",
         "openai": "^6.10.0",
         "prisma": "5.22.0",
         "react": "19.2.0",
         "react-dom": "19.2.0",
         "stripe": "^20.0.0",
         "tailwind": "^4.0.0",
-        "tailwind-merge": "^3.4.0"
+        "tailwind-merge": "^3.4.0",
+        "tailwindcss-animate": "^1.0.7"
       },
       "devDependencies": {
         "@tailwindcss/postcss": "^4",
@@ -6458,6 +6460,16 @@ FILE PATH: .\package-lock.json
         }
       }
     },
+    "node_modules/next-themes": {
+      "version": "0.4.6",
+      "resolved": "https://registry.npmjs.org/next-themes/-/next-themes-0.4.6.tgz",
+      "integrity": "sha512-pZvgD5L0IEvX5/9GWyHMf3m8BKiVQwsCMHfoFosXtXBMnaS0ZnIJ9ST4b4NqLVKDEm8QBxoNNGNaBv2JNF6XNA==",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc",
+        "react-dom": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc"
+      }
+    },
     "node_modules/next/node_modules/postcss": {
       "version": "8.4.31",
       "resolved": "https://registry.npmjs.org/postcss/-/postcss-8.4.31.tgz",
@@ -8078,8 +8090,17 @@ FILE PATH: .\package-lock.json
       "version": "4.1.17",
       "resolved": "https://registry.npmjs.org/tailwindcss/-/tailwindcss-4.1.17.tgz",
       "integrity": "sha512-j9Ee2YjuQqYT9bbRTfTZht9W/ytp5H+jJpZKiYdP/bpnXARAuELt9ofP0lPnmHjbga7SNQIxdTAXCmtKVYjN+Q==",
-      "dev": true,
-      "license": "MIT"
+      "license": "MIT",
+      "peer": true
+    },
+    "node_modules/tailwindcss-animate": {
+      "version": "1.0.7",
+      "resolved": "https://registry.npmjs.org/tailwindcss-animate/-/tailwindcss-animate-1.0.7.tgz",
+      "integrity": "sha512-bl6mpH3T7I3UFxuvDEXLxy/VuFxBk5bbzplh7tXI68mwMokNYd1t9qPBHlnyTwfa4JGC4zP516I1hYYtQ/vspA==",
+      "license": "MIT",
+      "peerDependencies": {
+        "tailwindcss": ">=3.0.0 || insiders"
+      }
     },
     "node_modules/tapable": {
       "version": "2.3.0",
@@ -8790,13 +8811,15 @@ FILE PATH: .\package.json
     "lucide-react": "^0.555.0",
     "next": "16.0.5",
     "next-auth": "^4.24.13",
+    "next-themes": "^0.4.6",
     "openai": "^6.10.0",
     "prisma": "5.22.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "stripe": "^20.0.0",
     "tailwind": "^4.0.0",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -8903,98 +8926,10 @@ FILE PATH: .\tsconfig.json
 
 
 ====================
-FILE PATH: .\app\admin\dashboard\page.tsx
-====================
-
-export default function AdminDashboard() {
-  return (
-    <div className="p-10">
-      <h1 className="text-3xl font-bold text-green-600">Admin Dashboard</h1>
-      <p className="mt-4 text-gray-600">Welcome back, Admin! You have successfully logged in.</p>
-      
-      <div className="grid grid-cols-3 gap-6 mt-8">
-        <div className="p-6 bg-blue-100 rounded-lg">
-          <h3 className="font-bold">Total Orders</h3>
-          <p className="text-2xl">124</p>
-        </div>
-        <div className="p-6 bg-green-100 rounded-lg">
-          <h3 className="font-bold">Revenue</h3>
-          <p className="text-2xl">Rs. 450,000</p>
-        </div>
-        <div className="p-6 bg-purple-100 rounded-lg">
-          <h3 className="font-bold">Pending</h3>
-          <p className="text-2xl">5</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-====================
-FILE PATH: .\app\api\auth\login\route.ts
-====================
-
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-import * as bcrypt from "bcryptjs"; // MUST match the seed library
-import jwt from "jsonwebtoken"; // Assuming you use JWT for sessions
-
-const prisma = new PrismaClient();
-
-export async function POST(req: Request) {
-  try {
-    const { email, password } = await req.json();
-
-    // 1. Find the user
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // 2. VITAL STEP: Compare the Input Password with the Hashed DB Password
-    // Do NOT use: if (password === user.password)
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    }
-
-    // 3. check for Admin role (Optional based on where they are logging in)
-    if (user.role !== "ADMIN") {
-       return NextResponse.json({ error: "Access denied: Admins only" }, { status: 403 });
-    }
-
-    // 4. Generate Token (JWT)
-    const token = jwt.sign(
-      { userId: user.id, role: user.role, email: user.email },
-      process.env.JWT_SECRET || "your-secret-key",
-      { expiresIn: "1d" }
-    );
-
-    // 5. Return success
-    const response = NextResponse.json({ message: "Login successful", role: user.role });
-    
-    // Set cookie
-    response.cookies.set("token", token, {
-      httpOnly: true, 
-      path: "/",
-    });
-
-    return response;
-
-  } catch (error) {
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
-  }
-}
-
-====================
 FILE PATH: .\prisma\seed.ts
 ====================
 
-import { PrismaClient, Role, PaymentMethod, OrderStatus } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import * as bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -9302,6 +9237,50 @@ ALTER TABLE "Review" ADD CONSTRAINT "Review_productId_fkey" FOREIGN KEY ("produc
 
 
 ====================
+FILE PATH: .\scripts\create-admin.ts
+====================
+
+import { PrismaClient } from '@prisma/client'
+import * as bcrypt from 'bcryptjs'
+
+const prisma = new PrismaClient()
+
+async function main() {
+  const email = 'admin@example.com'
+  const password = 'admin123' // The password you will use to login
+  
+  // 1. Hash the password
+  const hashedPassword = await bcrypt.hash(password, 10)
+
+  // 2. Upsert (Create if new, Update if exists)
+  const user = await prisma.user.upsert({
+    where: { email },
+    update: {
+      role: 'ADMIN',
+      password: hashedPassword, // Update password just in case
+    },
+    create: {
+      email,
+      name: 'Super Admin',
+      password: hashedPassword,
+      role: 'ADMIN',
+    },
+  })
+
+  console.log(`✅ Admin User Ready: ${user.email}`)
+  console.log(`🔑 Password: ${password}`)
+}
+
+main()
+  .catch((e) => {
+    console.error(e)
+    process.exit(1)
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
+  })
+
+====================
 FILE PATH: .\src\middleware.ts
 ====================
 
@@ -9339,7 +9318,7 @@ FILE PATH: .\src\app\actions.tsx
 
 import { prisma } from "@/lib/prisma"
 
-// 1. Suggestions for the Navbar (Existing)
+// 1. Suggestions for the Navbar
 export async function getSearchSuggestions(query: string) {
   if (!query || query.length < 1) return []
 
@@ -9357,15 +9336,25 @@ export async function getSearchSuggestions(query: string) {
       id: true,
       name: true,
       category: true,
-      imageUrl: true,
-      price: true
+      price: true,
+      // [FIX] Select the first image from the relation instead of 'imageUrl'
+      images: {
+        take: 1,
+        select: {
+          url: true
+        }
+      }
     }
   })
 
-  return products
+  // [FIX] Map the result to flatten the image URL for the frontend
+  return products.map(product => ({
+    ...product,
+    imageUrl: product.images[0]?.url || '/placeholder.jpg' // Fallback if empty
+  }))
 }
 
-// 2. Full Search for the Search Page (Fixes Category Logic)
+// 2. Full Search for the Search Page
 export async function searchProducts(params: {
   query?: string,
   minPrice?: number,
@@ -9374,7 +9363,6 @@ export async function searchProducts(params: {
 }) {
   const { query, minPrice, maxPrice, sort } = params
 
-  // Build the Where Clause
   const where: any = {
     price: {
       gte: minPrice || 0,
@@ -9382,7 +9370,6 @@ export async function searchProducts(params: {
     }
   }
 
-  // This block ensures if you search "Electronics", it looks in the category column too
   if (query) {
     where.OR = [
       { name: { contains: query, mode: 'insensitive' } },
@@ -9392,27 +9379,29 @@ export async function searchProducts(params: {
     ]
   }
 
-  // Build the OrderBy Clause
   let orderBy: any = {}
   if (sort === 'Price Low-High') orderBy = { price: 'asc' }
   else if (sort === 'Price High-Low') orderBy = { price: 'desc' }
   else if (sort === 'Newest') orderBy = { createdAt: 'desc' }
-  else orderBy = { id: 'asc' } // Default "Best Match"
+  else orderBy = { id: 'asc' }
 
-  // Execute Query
   const products = await prisma.product.findMany({
     where,
     orderBy,
     include: {
-      reviews: true // Include reviews to calculate ratings
+      reviews: true,
+      // [FIX] Include images so we can display them
+      images: {
+        take: 1
+      }
     }
   })
 
-  // Convert Decimal to Number for Client Component & Calculate Rating
   return products.map(p => ({
     ...p,
     price: Number(p.price),
-    // Calculate simple average rating from the relation
+    // [FIX] Map the first image url to 'imageUrl' so your UI components keep working
+    imageUrl: p.images[0]?.url || '/placeholder.jpg',
     rating: p.reviews.length > 0 
       ? p.reviews.reduce((acc, r) => acc + r.rating, 0) / p.reviews.length 
       : 0,
@@ -9426,45 +9415,105 @@ FILE PATH: .\src\app\globals.css
 
 @import "tailwindcss";
 
+/* @plugin "tailwindcss-animate"; */
+
 :root {
+  /* Light Mode Colors */
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #09090b; /* Zinc-950 */
+  
+  --card: #ffffff;
+  --card-foreground: #09090b;
+ 
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+ 
+  --primary: #18181b; /* Zinc-900 */
+  --primary-foreground: #fafafa; /* Zinc-50 */
+ 
+  --secondary: #f4f4f5; /* Zinc-100 */
+  --secondary-foreground: #18181b;
+ 
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a; /* Zinc-500 */
+ 
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+ 
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+
+  --border: #e4e4e7; /* Zinc-200 */
+  --input: #e4e4e7;
+  --ring: #18181b;
+  
+  --radius: 0.5rem;
+}
+
+.dark {
+  /* Dark Mode Colors */
+  --background: #09090b; /* Zinc-950 */
+  --foreground: #fafafa; /* Zinc-50 */
+ 
+  --card: #09090b;
+  --card-foreground: #fafafa;
+ 
+  --popover: #09090b;
+  --popover-foreground: #fafafa;
+ 
+  --primary: #fafafa;
+  --primary-foreground: #18181b;
+ 
+  --secondary: #27272a; /* Zinc-800 */
+  --secondary-foreground: #fafafa;
+ 
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa; /* Zinc-400 */
+ 
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
+ 
+  --destructive: #7f1d1d;
+  --destructive-foreground: #fafafa;
+ 
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #d4d4d8;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: calc(var(--radius));
+  --radius-lg: calc(var(--radius) + 2px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Base Styles */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-/* ... existing css ... */
-
-@keyframes marquee {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
-}
-
-.animate-marquee {
-  animation: marquee 20s linear infinite;
-}
-
-/* Glowing Text Effect */
-.text-glow {
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.4);
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
 ====================
@@ -9477,7 +9526,8 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { CartProvider } from "@/context/CartContext";
-import { NextAuthProvider } from "@/components/providers/NextAuthProvider"; // [NEW] Import
+import { ThemeProvider } from "@/components/theme-provider";
+import { NextAuthProvider } from "@/components/providers/NextAuthProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -9492,20 +9542,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} min-h-screen bg-gray-50 flex flex-col`}>
-        {/* [NEW] Wrap everything in NextAuthProvider */}
-        <NextAuthProvider>
-          <CartProvider>
-            <Navbar />
-            
-            <main className="flex-grow">
-              {children}
-            </main>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} min-h-screen bg-background text-foreground flex flex-col`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <NextAuthProvider>
+            <CartProvider>
+              <Navbar />
+              
+              <main className="flex-grow">
+                {children}
+              </main>
 
-            <Footer />
-          </CartProvider>
-        </NextAuthProvider>
+              <Footer />
+            </CartProvider>
+          </NextAuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
@@ -9553,6 +9609,198 @@ export default async function HomePage() {
       </section>
     </main>
   )
+}
+
+====================
+FILE PATH: .\src\app\about\page.tsx
+====================
+
+import { Users, Truck, Award, Globe } from "lucide-react"
+
+export default function AboutPage() {
+  return (
+    <div className="bg-background text-foreground min-h-screen">
+      {/* Hero Section */}
+      <div className="relative bg-primary text-primary-foreground py-24 px-4 overflow-hidden">
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
+          <h1 className="text-5xl font-extrabold mb-6 tracking-tight">Crafting Quality for You</h1>
+          <p className="text-xl text-primary-foreground/80 leading-relaxed max-w-2xl mx-auto">
+            We started with a simple mission: to make premium lifestyle products accessible to everyone in Pakistan.
+          </p>
+        </div>
+        
+        {/* Abstract Background Decoration */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+          <div className="absolute top-10 left-10 w-64 h-64 bg-background rounded-full blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-96 h-96 bg-background rounded-full blur-3xl"></div>
+        </div>
+      </div>
+
+      {/* Stats Section */}
+      <div className="py-16 bg-secondary border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          {[
+            { label: "Happy Customers", value: "10k+", icon: Users },
+            { label: "Products Sold", value: "50k+", icon: Truck },
+            { label: "Years Active", value: "3", icon: Award },
+            { label: "Cities Covered", value: "120+", icon: Globe },
+          ].map((stat, i) => (
+            <div key={i} className="p-4">
+              <div className="flex justify-center mb-3 text-primary">
+                <stat.icon className="w-8 h-8" />
+              </div>
+              <div className="text-3xl font-bold text-foreground mb-1">{stat.value}</div>
+              <div className="text-sm text-muted-foreground font-medium uppercase tracking-wide">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Content Section */}
+      <div className="max-w-4xl mx-auto px-4 py-20 space-y-16">
+        <section className="grid md:grid-cols-2 gap-12 items-center">
+          <div>
+            <h2 className="text-3xl font-bold mb-4 text-foreground">Our Story</h2>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              Founded in 2024, our journey began in a small garage with a passion for technology and design.
+              What started as a side project has grown into one of the most trusted e-commerce platforms in the region.
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              We believe that shopping should be simple, reliable, and enjoyable. That's why we meticulously curate 
+              our inventory and obsess over customer experience.
+            </p>
+          </div>
+          {/* Placeholder for Image */}
+          <div className="bg-muted h-64 rounded-2xl w-full border border-border"></div> 
+        </section>
+
+        <section className="grid md:grid-cols-2 gap-12 items-center md:flex-row-reverse">
+          <div className="md:order-2">
+            <h2 className="text-3xl font-bold mb-4 text-foreground">Our Promise</h2>
+            <ul className="space-y-3">
+              {["100% Authentic Products", "24/7 Customer Support", "Secure Payment Gateways", "Fast Shipping Nationwide"].map((item, i) => (
+                <li key={i} className="flex items-center text-muted-foreground">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          {/* Placeholder for Image */}
+          <div className="md:order-1 bg-muted h-64 rounded-2xl w-full border border-border"></div> 
+        </section>
+      </div>
+    </div>
+  )
+}
+
+====================
+FILE PATH: .\src\app\actions\admin.ts
+====================
+
+'use server'
+
+import { prisma } from "@/lib/prisma"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { redirect } from "next/navigation"
+
+export async function getAdminStats() {
+  const session = await getServerSession(authOptions)
+  
+  // 1. Security Check: Only allow Admin
+  if (session?.user?.role !== "ADMIN") {
+    return null
+  }
+
+  // 2. Fetch Totals
+  const totalUsers = await prisma.user.count({
+    where: { role: "CUSTOMER" }
+  })
+  
+  const totalOrders = await prisma.order.count()
+  
+  const totalProducts = await prisma.product.count()
+
+  // 3. Calculate Revenue (Sum of 'totalAmount' for paid orders)
+  const revenueResult = await prisma.order.aggregate({
+    _sum: {
+      totalAmount: true
+    },
+    where: {
+      // You might check for 'status: DELIVERED' or 'isPaid: true' depending on logic
+      status: { not: "CANCELLED" } 
+    }
+  })
+
+  // 4. Fetch Recent Orders
+  const recentOrders = await prisma.order.findMany({
+    take: 5,
+    orderBy: { createdAt: "desc" },
+    include: {
+      user: { select: { name: true, email: true } }
+    }
+  })
+
+  return {
+    totalUsers,
+    totalOrders,
+    totalProducts,
+    totalRevenue: revenueResult._sum.totalAmount || 0,
+    recentOrders
+  }
+}
+
+====================
+FILE PATH: .\src\app\actions\jobs.ts
+====================
+
+"use server"
+
+import { prisma } from "@/lib/prisma"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
+
+export async function createJob(formData: FormData) {
+  const session = await getServerSession(authOptions)
+  
+  // Security Check: Only Admin can post
+  if (session?.user?.role !== "ADMIN") {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  const rawRequirements = formData.get("requirements") as string
+
+  // Split the requirements text by "New Line" to create an array
+  const requirementsArray = rawRequirements
+    .split("\n")
+    .map(req => req.trim())
+    .filter(req => req.length > 0)
+
+  try {
+    await prisma.job.create({
+      data: {
+        title: formData.get("title") as string,
+        department: formData.get("department") as string,
+        type: formData.get("type") as string,
+        location: formData.get("location") as string,
+        salary: formData.get("salary") as string,
+        description: formData.get("description") as string,
+        requirements: requirementsArray,
+        isActive: true
+      }
+    })
+
+    revalidatePath("/careers") // Update public page
+    revalidatePath("/admin/jobs") // Update admin list
+  } catch (error) {
+    console.error("Job Post Error:", error)
+    return { success: false, error: "Database Error" }
+  }
+
+  redirect("/admin/jobs")
 }
 
 ====================
@@ -9700,12 +9948,24 @@ export async function getUserDashboard() {
   const pendingReviewIds = [...boughtProductIds].filter(id => !reviewedProductIds.has(id))
   
   // 4. Fetch details for these products
+  // [FIX] Updated to fetch 'images' relation instead of missing 'imageUrl' field
   const pendingReviews = await prisma.product.findMany({
     where: { id: { in: pendingReviewIds } },
-    select: { id: true, name: true, imageUrl: true }
+    select: { 
+      id: true, 
+      name: true, 
+      images: { take: 1, select: { url: true } } 
+    }
   })
 
-  return { ...user, pendingReviews }
+  // [FIX] Flatten the result so the frontend gets a simple 'imageUrl' string
+  const formattedPendingReviews = pendingReviews.map(p => ({
+    id: p.id,
+    name: p.name,
+    imageUrl: p.images[0]?.url || '/placeholder.jpg'
+  }))
+
+  return { ...user, pendingReviews: formattedPendingReviews }
 }
 
 // 2. Add Address
@@ -9724,7 +9984,7 @@ export async function addAddress(formData: FormData) {
       city: formData.get("city") as string,
       postalCode: formData.get("postalCode") as string,
       phone: formData.get("phone") as string,
-      country: "USA" // Default
+      country: "Pakistan" // Updated to Pakistan as requested
     }
   })
 
@@ -9732,7 +9992,7 @@ export async function addAddress(formData: FormData) {
   return { success: true }
 }
 
-// 3. Add Payment Method (Mock)
+// 3. Add Payment Method
 export async function addPaymentMethod(formData: FormData) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) return { success: false }
@@ -9740,11 +10000,14 @@ export async function addPaymentMethod(formData: FormData) {
   const user = await prisma.user.findUnique({ where: { email: session.user.email } })
   if (!user) return { success: false }
 
+  const cardNumber = formData.get("cardNumber") as string
+  
   await prisma.paymentMethod.create({
     data: {
       userId: user.id,
-      brand: formData.get("brand") as string,
-      last4: (formData.get("cardNumber") as string).slice(-4),
+      // [FIX] Using 'type' to match the Schema we defined
+      type: (formData.get("brand") as string) || "Credit Card", 
+      last4: cardNumber.slice(-4), // Only save last 4 digits securely
       expiry: formData.get("expiry") as string
     }
   })
@@ -9830,65 +10093,39 @@ export async function toggleWishlist(productId: string) {
 FILE PATH: .\src\app\admin\layout.tsx
 ====================
 
-// src/app/admin/layout.tsx
-import Link from "next/link"
-import { LayoutDashboard, Package, Users, Settings, LogOut, ClipboardList, Truck } from "lucide-react"
-import { AiAssistant } from "@/components/admin/AiAssistant"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { redirect } from "next/navigation"
+import { AdminNav } from "@/components/admin/AdminNav" // [NEW] Import the component
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const session = await getServerSession(authOptions)
+
+  // Protect Admin Routes
+  if (session?.user?.role !== "ADMIN") {
+    redirect("/login")
+  }
+
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      
+    <div className="flex min-h-screen bg-gray-100">
       {/* SIDEBAR */}
-      <aside className="w-64 bg-black text-white hidden md:flex flex-col">
-        <div className="p-6 border-b border-gray-800">
-          <h1 className="text-2xl font-bold tracking-tight">Admin Panel</h1>
-          <p className="text-xs text-gray-400 mt-1">Manage your store</p>
+      <aside className="w-64 bg-slate-900 text-white hidden md:block flex-shrink-0">
+        <div className="p-6">
+          <h2 className="text-2xl font-bold tracking-tight">Admin Panel</h2>
         </div>
-
-        <nav className="flex-1 p-4 space-y-2">
-          <Link href="/admin" className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition">
-            <LayoutDashboard className="w-5 h-5" />
-            Dashboard
-          </Link>
-          <Link href="/admin/orders" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition">
-            <Package className="w-5 h-5" />
-            Orders
-          </Link>
-          <Link href="/admin/inventory" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition">
-            <ClipboardList className="w-5 h-5" />
-            Inventory
-          </Link>
-          <Link href="/admin/products" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition">
-            <Package className="w-5 h-5" />
-            Products
-          </Link>
-          <Link href="/admin/inventory/vendor-orders" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition">
-            <Truck className="w-5 h-5" />
-            Vendor Orders
-          </Link>
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition cursor-not-allowed opacity-50">
-            <Users className="w-5 h-5" />
-            Customers (Soon)
-          </div>
-        </nav>
-
-        <div className="p-4 border-t border-gray-800">
-          <Link href="/" className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-gray-900 transition">
-            <LogOut className="w-5 h-5" />
-            Exit to Store
-          </Link>
-        </div>
+        
+        {/* [NEW] Replaced static links with the dynamic component */}
+        <AdminNav />
+        
       </aside>
 
-      {/* MAIN CONTENT AREA */}
+      {/* MAIN CONTENT */}
       <main className="flex-1 p-8 overflow-y-auto">
         {children}
-        <AiAssistant />
       </main>
     </div>
   )
@@ -10000,6 +10237,107 @@ export default async function AdminDashboard() {
                     No orders found. Go buy something!
                   </td>
                 </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+====================
+FILE PATH: .\src\app\admin\dashboard\page.tsx
+====================
+
+import { getAdminStats } from "@/app/actions/admin"
+import { redirect } from "next/navigation"
+
+export default async function AdminDashboard() {
+  const stats = await getAdminStats()
+
+  if (!stats) {
+    redirect("/") // Kick out non-admins
+  }
+
+  return (
+    <div>
+      <h1 className="text-3xl font-bold text-foreground mb-8">Dashboard Overview</h1>
+
+      {/* STATS GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        
+        {/* Card 1: Revenue */}
+        <div className="bg-card text-card-foreground p-6 rounded-xl shadow-sm border border-border">
+          <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
+          <p className="text-2xl font-bold text-foreground mt-2">
+            Rs. {Number(stats.totalRevenue).toLocaleString()}
+          </p>
+        </div>
+        
+        {/* Card 2: Orders */}
+        <div className="bg-card text-card-foreground p-6 rounded-xl shadow-sm border border-border">
+          <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
+          <p className="text-2xl font-bold text-foreground mt-2">{stats.totalOrders}</p>
+        </div>
+
+        {/* Card 3: Products */}
+        <div className="bg-card text-card-foreground p-6 rounded-xl shadow-sm border border-border">
+          <p className="text-sm font-medium text-muted-foreground">Products</p>
+          <p className="text-2xl font-bold text-foreground mt-2">{stats.totalProducts}</p>
+        </div>
+
+        {/* Card 4: Customers */}
+        <div className="bg-card text-card-foreground p-6 rounded-xl shadow-sm border border-border">
+          <p className="text-sm font-medium text-muted-foreground">Customers</p>
+          <p className="text-2xl font-bold text-foreground mt-2">{stats.totalUsers}</p>
+        </div>
+      </div>
+
+      {/* RECENT ORDERS TABLE */}
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+        <div className="px-6 py-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground">Recent Orders</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-muted-foreground">
+            {/* Table Header: Uses muted background for contrast */}
+            <thead className="bg-muted/50 text-foreground font-medium">
+              <tr>
+                <th className="px-6 py-3">Order ID</th>
+                <th className="px-6 py-3">Customer</th>
+                <th className="px-6 py-3">Date</th>
+                <th className="px-6 py-3">Total</th>
+                <th className="px-6 py-3">Status</th>
+              </tr>
+            </thead>
+            
+            {/* Table Body: Uses border dividers */}
+            <tbody className="divide-y divide-border">
+              {stats.recentOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-4 text-center text-muted-foreground">No orders found</td>
+                </tr>
+              ) : (
+                stats.recentOrders.map((order: any) => (
+                  <tr key={order.id} className="hover:bg-muted/50 transition-colors">
+                    <td className="px-6 py-4 font-mono text-foreground">#{order.id.slice(-6)}</td>
+                    <td className="px-6 py-4 text-foreground">{order.user?.name || "Guest"}</td>
+                    <td className="px-6 py-4">{new Date(order.createdAt).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 font-medium text-foreground">Rs. {Number(order.totalAmount).toLocaleString()}</td>
+                    <td className="px-6 py-4">
+                      {/* STATUS BADGES - HIGH CONTRAST FIX */}
+                      <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-full border 
+                        ${order.status === 'DELIVERED' 
+                          ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20' 
+                          : order.status === 'PENDING' 
+                            ? 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20' 
+                            : 'bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'}`}>
+                        {order.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
@@ -10310,28 +10648,19 @@ import InventoryDashboard from "./InventoryDashboard"
 export const dynamic = 'force-dynamic'
 
 export default async function InventoryPage() {
-  // Fetch all products with the new inventory fields
   const products = await prisma.product.findMany({
     orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      name: true,
-      stock: true,
-      category: true,
-      price: true,
-      // Inventory specific fields
-      barcode: true,
-      expiryDate: true,
-      vendor: true,
-      origin: true
-    }
+    include: { images: { take: 1 } } // [FIX] Include images
   })
 
-  // Convert dates/decimals to simple types for the client component
+  // [FIX] Serialize data (Decimal -> Number, Date -> String)
   const serializedProducts = products.map(p => ({
     ...p,
     price: Number(p.price),
-    expiryDate: p.expiryDate ? p.expiryDate.toISOString() : null
+    imageUrl: p.images[0]?.url || null,
+    expiryDate: p.expiryDate ? p.expiryDate.toISOString() : null,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
   }))
 
   return (
@@ -10340,8 +10669,6 @@ export default async function InventoryPage() {
         <h1 className="text-3xl font-bold text-gray-900">Inventory Management</h1>
         <p className="text-gray-500">Real-time stock tracking and reordering.</p>
       </div>
-
-      {/* Render the Client Component */}
       <InventoryDashboard initialProducts={serializedProducts} />
     </div>
   )
@@ -10397,6 +10724,195 @@ export default async function VendorOrdersPage() {
 }
 
 ====================
+FILE PATH: .\src\app\admin\jobs\page.tsx
+====================
+
+import { prisma } from "@/lib/prisma"
+import Link from "next/link"
+import { Briefcase, MapPin } from "lucide-react"
+
+export default async function AdminJobsPage() {
+  const jobs = await prisma.job.findMany({
+    orderBy: { createdAt: 'desc' }
+  })
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Job Postings</h1>
+          <p className="text-gray-500">Manage your open positions</p>
+        </div>
+        <Link 
+          href="/admin/jobs/new" 
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2"
+        >
+          + Post New Job
+        </Link>
+      </div>
+
+      {/* Jobs List */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {jobs.length === 0 ? (
+          <div className="p-12 text-center text-gray-500">
+            <Briefcase className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <p>No jobs posted yet.</p>
+          </div>
+        ) : (
+          <table className="w-full text-left text-sm text-gray-600">
+            <thead className="bg-gray-50 text-gray-900 font-medium">
+              <tr>
+                <th className="px-6 py-3">Title</th>
+                <th className="px-6 py-3">Department</th>
+                <th className="px-6 py-3">Location</th>
+                <th className="px-6 py-3">Type</th>
+                <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {jobs.map((job) => (
+                <tr key={job.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium text-gray-900">{job.title}</td>
+                  <td className="px-6 py-4">{job.department}</td>
+                  <td className="px-6 py-4 flex items-center gap-1">
+                    <MapPin className="w-3 h-3" /> {job.location}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs border border-blue-100">
+                      {job.type}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      job.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                    }`}>
+                      {job.isActive ? "Active" : "Closed"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <Link href={`/admin/jobs/${job.id}`} className="text-indigo-600 hover:underline">
+                      Edit
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  )
+}
+
+====================
+FILE PATH: .\src\app\admin\jobs\new\page.tsx
+====================
+
+"use client"
+
+import { useState } from "react"
+import { createJob } from "@/app/actions/jobs"
+import { ArrowLeft, Save } from "lucide-react"
+import Link from "next/link"
+
+export default function NewJobPage() {
+  const [loading, setLoading] = useState(false)
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/dashboard" className="p-2 hover:bg-gray-200 rounded-full transition">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <h1 className="text-2xl font-bold text-gray-900">Post New Job</h1>
+        </div>
+      </div>
+
+      {/* Form Card */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+        <form action={createJob} onSubmit={() => setLoading(true)} className="space-y-6">
+          
+          {/* Row 1: Title & Dept */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
+              <input name="title" required placeholder="e.g. Senior Product Designer" className="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-600" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+              <select name="department" className="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-600 bg-white">
+                <option value="Engineering">Engineering</option>
+                <option value="Design">Design</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Sales">Sales</option>
+                <option value="Support">Support</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Row 2: Location, Type, Salary */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+              <input name="location" required placeholder="e.g. Remote / New York" className="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-600" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+              <select name="type" className="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-600 bg-white">
+                <option value="Full-time">Full-time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Contract">Contract</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Salary Range</label>
+              <input name="salary" required placeholder="e.g. $80k - $100k" className="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-600" />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Job Description</label>
+            <textarea name="description" required rows={5} placeholder="Describe the role responsibilities..." className="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-600 resize-none"></textarea>
+          </div>
+
+          {/* Requirements */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Requirements (One per line)</label>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-2">
+              <textarea 
+                name="requirements" 
+                required 
+                rows={6} 
+                placeholder="• 5+ years React experience&#10;• Knowledge of Next.js&#10;• Good communication skills" 
+                className="w-full bg-transparent border-none outline-none p-2 resize-none text-sm"
+              ></textarea>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Press Enter to add a new bullet point requirement.</p>
+          </div>
+
+          {/* Submit Button */}
+          <div className="pt-4 border-t">
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition flex justify-center items-center gap-2"
+            >
+              {loading ? "Publishing..." : <><Save className="w-4 h-4" /> Publish Job Posting</>}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  )
+}
+
+====================
 FILE PATH: .\src\app\admin\orders\page.tsx
 ====================
 
@@ -10408,10 +10924,9 @@ import { Truck, MapPin, Phone } from "lucide-react"
 export const dynamic = 'force-dynamic'
 
 export default async function AdminOrdersPage() {
-  // Fetch ALL orders, newest first
   const orders = await prisma.order.findMany({
     orderBy: { createdAt: 'desc' },
-    include: { items: true } // Include items to count them
+    include: { user: true }
   })
 
   return (
@@ -10511,13 +11026,8 @@ export default async function AdminOrdersPage() {
 FILE PATH: .\src\app\admin\products\page.tsx
 ====================
 
-// src/app/admin/products/page.tsx
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
-import { Plus, Trash2, Edit } from "lucide-react"
-import { deleteProduct } from "@/modules/admin/actions"
-
-export const dynamic = 'force-dynamic'
 
 export default async function AdminProductsPage() {
   const products = await prisma.product.findMany({
@@ -10525,52 +11035,48 @@ export default async function AdminProductsPage() {
   })
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Inventory</h1>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-900">Products</h1>
         <Link 
           href="/admin/products/new" 
-          className="bg-black text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-800 transition"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
         >
-          <Plus className="w-4 h-4" /> Add Product
+          + Add Product
         </Link>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <table className="w-full text-left text-sm text-gray-600">
+          <thead className="bg-gray-50 text-gray-900 font-medium">
             <tr>
-              <th className="px-6 py-4 font-semibold border-b">Product Name</th>
-              <th className="px-6 py-4 font-semibold border-b">Category</th>
-              <th className="px-6 py-4 font-semibold border-b">Price</th>
-              <th className="px-6 py-4 font-semibold border-b">Stock</th>
-              <th className="px-6 py-4 font-semibold border-b text-right">Actions</th>
+              <th className="px-6 py-3">Name</th>
+              <th className="px-6 py-3">Price</th>
+              <th className="px-6 py-3">Stock</th>
+              <th className="px-6 py-3">Category</th>
+              <th className="px-6 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {products.map((product) => (
-              <tr key={product.id} className="hover:bg-gray-50 transition">
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                  {product.name}
+              <tr key={product.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 font-medium">{product.name}</td>
+                <td className="px-6 py-4">Rs. {Number(product.price).toLocaleString()}</td>
+                <td className="px-6 py-4">
+                  <span className={`px-2 py-1 rounded text-xs ${
+                    product.stock > 10 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }`}>
+                    {product.stock} in stock
+                  </span>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
-                  <span className="bg-gray-100 px-2 py-1 rounded text-xs">{product.category}</span>
-                </td>
-                <td className="px-6 py-4 text-sm font-bold text-gray-900">
-                  ${Number(product.price).toFixed(2)}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
-                  {product.stock} units
-                </td>
-                <td className="px-6 py-4 text-right flex justify-end gap-2">
-                  <form action={async () => {
-                    "use server"
-                    await deleteProduct(product.id)
-                  }}>
-                    <button className="text-red-500 hover:bg-red-50 p-2 rounded-md transition">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </form>
+                <td className="px-6 py-4">{product.category}</td>
+                <td className="px-6 py-4 text-right">
+                  <Link 
+                    href={`/admin/products/${product.id}`} 
+                    className="text-indigo-600 hover:text-indigo-900"
+                  >
+                    Edit
+                  </Link>
                 </td>
               </tr>
             ))}
@@ -10750,113 +11256,65 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
 }
 
 ====================
-FILE PATH: .\src\app\api\admin\ai\route.ts
+FILE PATH: .\src\app\api\auth\login\route.ts
 ====================
 
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import OpenAI from "openai"
-
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+import { NextResponse } from "next/server";
+import { prisma } from '@/lib/prisma'; // Connects to your singleton DB client
+import * as bcrypt from "bcryptjs"; 
+import jwt from "jsonwebtoken"; 
 
 export async function POST(req: Request) {
   try {
-    const { message } = await req.json()
+    const body = await req.json();
+    const { email, password } = body;
 
-    // 1. Fetch REAL Inventory Data from Prisma
-    // We select only relevant fields to keep the payload small for the AI
-    const products = await prisma.product.findMany({
-      select: {
-        name: true,
-        stock: true,
-        price: true,
-        vendor: true,
-        expiryDate: true,
-        category: true,
-      }
-    })
+    // 1. Validation
+    if (!email || !password) {
+      return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+    }
 
-    // 2. Prepare the System Prompt with the Data
-    // We feed the database state directly to the AI as context
-    const systemPrompt = `
-      You are an expert Inventory Analyst AI for a warehouse. 
-      You have access to the current inventory data below in JSON format.
-      
-      CURRENT INVENTORY DATA:
-      ${JSON.stringify(products)}
-
-      Your job is to answer the user's question based ONLY on this data.
-      - If asking about low stock, look for items with stock < 10.
-      - If asking about value, multiply price * stock.
-      - If asking about vendors, aggregate data by vendor.
-      - Keep answers concise, professional, and actionable.
-      - Format numbers as currency ($) where appropriate.
-    `
-
-    // 3. Call OpenAI
-    const completion = await openai.chat.completions.create({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message }
-      ],
-      model: "gpt-4o-mini", // Cost-effective and fast
-    })
-
-    const answer = completion.choices[0].message.content
-
-    return NextResponse.json({ answer })
-
-  } catch (error) {
-    console.error("AI Error:", error)
-    return NextResponse.json(
-      { answer: "I encountered an error analyzing your inventory. Please check your API key." },
-      { status: 500 }
-    )
-  }
-}
-
-====================
-FILE PATH: .\src\app\api\auth\forgot-password\route.ts
-====================
-
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import crypto from "crypto"
-
-export async function POST(req: Request) {
-  try {
-    const { email } = await req.json()
-    
-    // 1. Check user
-    const user = await prisma.user.findUnique({ where: { email } })
-    if (!user) return NextResponse.json({ message: "User not found" }, { status: 404 })
-
-    // 2. Generate Reset Token
-    const resetToken = crypto.randomBytes(32).toString("hex")
-    // Token expires in 1 hour
-    const resetTokenExpiry = new Date(Date.now() + 3600000) 
-
-    // 3. Save to DB
-    await prisma.user.update({
+    // 2. Find the user
+    const user = await prisma.user.findUnique({
       where: { email },
-      data: { resetToken, resetTokenExpiry }
-    })
+    });
 
-    // 4. Send Email (MOCK implementation)
-    // In production, use Resend or Nodemailer here.
-    const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${resetToken}`
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // 3. Compare Passwords
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    }
+
+    // 4. Generate Token
+    const token = jwt.sign(
+      { userId: user.id, role: user.role, email: user.email },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "1d" }
+    );
+
+    // 5. Return Success
+    const response = NextResponse.json({ 
+        message: "Login successful", 
+        role: user.role 
+    });
     
-    console.log("==============================================")
-    console.log("🔐 PASSWORD RESET LINK GENERATED (DEV MODE):")
-    console.log(resetUrl)
-    console.log("==============================================")
+    // Set cookie
+    response.cookies.set("token", token, {
+      httpOnly: true, 
+      path: "/",
+      maxAge: 60 * 60 * 24, // 1 day
+    });
 
-    return NextResponse.json({ success: true })
+    return response;
+
   } catch (error) {
-    return NextResponse.json({ success: false }, { status: 500 })
+    console.error("Login API Error:", error);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
 
@@ -10864,87 +11322,62 @@ export async function POST(req: Request) {
 FILE PATH: .\src\app\api\auth\register\route.ts
 ====================
 
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import bcrypt from "bcryptjs"
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import * as bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password } = await req.json()
+    const body = await req.json();
+    const { email, password, name, role } = body;
 
-    if (!email || !password) {
-      return NextResponse.json({ message: "Missing fields" }, { status: 400 })
+    // --- VALIDATION START ---
+    
+    // 1. Check for missing fields
+    if (!email || !password || !name) {
+      return NextResponse.json({ error: "Name, email, and password are required" }, { status: 400 });
     }
 
-    // Check if user exists
+    // 2. Validate Password Strength
+    if (password.length < 6) {
+      return NextResponse.json({ error: "Password must be at least 6 characters long" }, { status: 400 });
+    }
+
+    // 3. Validate Email Format (Basic Regex)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ error: "Invalid email address format" }, { status: 400 });
+    }
+
+    // --- VALIDATION END ---
+
+    // 4. Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email }
-    })
+      where: { email },
+    });
 
     if (existingUser) {
-      return NextResponse.json({ message: "User already exists" }, { status: 400 })
+      // This specific error message will be shown on the frontend
+      return NextResponse.json({ error: "This email is already registered. Please log in." }, { status: 400 });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10)
+    // 5. Hash Password & Create User
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create User (Default role is CUSTOMER)
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
-        name,
         email,
+        name,
         password: hashedPassword,
-        role: "CUSTOMER" 
-      }
-    })
+        role: role || "CUSTOMER",
+      },
+    });
 
-    return NextResponse.json({ message: "User created successfully" }, { status: 201 })
+    return NextResponse.json({ success: true, message: "User created successfully" });
 
   } catch (error) {
-    return NextResponse.json({ message: "Server error" }, { status: 500 })
-  }
-}
-
-====================
-FILE PATH: .\src\app\api\auth\reset-password\route.ts
-====================
-
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import bcrypt from "bcryptjs"
-
-export async function POST(req: Request) {
-  try {
-    const { token, password } = await req.json()
-
-    // 1. Find user with valid token and expiry
-    const user = await prisma.user.findFirst({
-      where: {
-        resetToken: token,
-        resetTokenExpiry: { gt: new Date() } // Expiry must be in the future
-      }
-    })
-
-    if (!user) {
-      return NextResponse.json({ message: "Invalid or expired token" }, { status: 400 })
-    }
-
-    // 2. Hash new password
-    const hashedPassword = await bcrypt.hash(password, 10)
-
-    // 3. Update User (Clear token fields)
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        password: hashedPassword,
-        resetToken: null,
-        resetTokenExpiry: null
-      }
-    })
-
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    return NextResponse.json({ success: false }, { status: 500 })
+    console.error("Registration Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 
@@ -10952,98 +11385,341 @@ export async function POST(req: Request) {
 FILE PATH: .\src\app\api\auth\[...nextauth]\route.ts
 ====================
 
-import NextAuth, { AuthOptions } from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
-import { prisma } from "@/lib/prisma"
-import bcrypt from "bcryptjs"
+import NextAuth, { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { prisma } from "@/lib/prisma";
+import { compare } from "bcryptjs";
 
-// 1. Export this object so other files can use it
-export const authOptions: AuthOptions = {
+export const authOptions: NextAuthOptions = {
+  session: {
+    strategy: "jwt",
+  },
+  pages: {
+    signIn: "/login", // Redirects here if not authenticated
+  },
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null
-        const user = await prisma.user.findUnique({ where: { email: credentials.email } })
-        if (!user) return null
-        const passwordMatch = await bcrypt.compare(credentials.password, user.password)
-        if (!passwordMatch) return null
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+        });
+
+        if (!user) {
+          return null;
+        }
+
+        const isPasswordValid = await compare(credentials.password, user.password);
+
+        if (!isPasswordValid) {
+          return null;
+        }
+
         return {
           id: user.id,
-          name: user.name,
           email: user.email,
-          role: user.role
-        }
-      }
-    })
+          name: user.name,
+          role: user.role,
+        };
+      },
+    }),
   ],
   callbacks: {
-    async jwt({ token, user }: any) {
-      if (user) {
-        token.role = user.role
-        token.id = user.id // <--- IMPORTANT: Save ID to token
+    async session({ session, token }) {
+      if (token && session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
       }
-      return token
+      return session;
     },
-    async session({ session, token }: any) {
-      if (session?.user) {
-        session.user.role = token.role
-        session.user.id = token.id // <--- IMPORTANT: Save ID to session
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
       }
-      return session
-    }
+      return token;
+    },
   },
-  pages: { signIn: '/login' }
-}
+};
 
-const handler = NextAuth(authOptions)
-export { handler as GET, handler as POST }
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST };
+
+====================
+FILE PATH: .\src\app\api\contact\route.ts
+====================
+
+import { NextResponse } from "next/server"
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json()
+    
+    // Here you would normally send an email using Resend, SendGrid, or Nodemailer
+    // For now, we simulate success
+    console.log("📩 New Support Message:", body)
+
+    return NextResponse.json({ success: true, message: "Message received" })
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to process" }, { status: 500 })
+  }
+}
 
 ====================
 FILE PATH: .\src\app\api\orders\route.ts
 ====================
 
-// src/app/api/orders/route.ts
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+
+export async function POST(req: Request) {
+  try {
+    // 1. Check Session
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 2. Get Data
+    const body = await req.json();
+    const { items, total, paymentMethod } = body;
+
+    if (!items || items.length === 0) {
+      return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
+    }
+
+    // 3. Get User Details (to fill required Schema fields)
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      include: { addresses: true } // Fetch address to auto-fill
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // 4. Resolve Address & Contact Info
+    // (We use the user's first saved address, or fallback defaults to prevent crashes)
+    const primaryAddress = user.addresses[0]; 
+
+    const orderData = {
+      userId: user.id,
+      totalAmount: parseFloat(total),
+      status: "PENDING",
+      
+      // REQUIRED FIELDS FROM NEW SCHEMA
+      guestName: user.name || "Customer",
+      guestEmail: user.email,
+      address: primaryAddress?.street || "No Address Provided",
+      city: primaryAddress?.city || "Unknown City",
+      postalCode: primaryAddress?.postalCode || "00000",
+      phone: primaryAddress?.phone || "0000000000",
+
+      // MAP PAYMENT METHOD (String -> Enum)
+      paymentMethod: paymentMethod === "CARD" ? "CARD" : "COD", 
+      
+      items: {
+        create: items.map((item: any) => ({
+          productId: item.id,
+          quantity: item.quantity,
+          price: parseFloat(item.price),
+        })),
+      },
+    };
+
+    // 5. Create Order
+    // @ts-ignore (Ignores strict type checks for the enum to prevent build errors if types aren't synced)
+    const order = await prisma.order.create({
+      data: orderData,
+    });
+
+    return NextResponse.json({ success: true, orderId: order.id });
+
+  } catch (error) {
+    console.error("Order Creation Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+
+====================
+FILE PATH: .\src\app\api\orders\[id]\route.ts
+====================
+
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json()
-    const { items, shippingDetails, paymentMethod, total } = body
+export async function GET(req: Request, { params }: { params: { id: string } }) {
+  const order = await prisma.order.findUnique({
+    where: { id: params.id },
+    select: {
+      id: true,
+      status: true,
+      totalAmount: true,
+      createdAt: true,
+      paymentMethod: true
+    }
+  })
 
-    // 1. Create the Order in the Database
-    const order = await prisma.order.create({
-      data: {
-        guestName: shippingDetails.fullName,
-        address: shippingDetails.address,
-        city: shippingDetails.city,
-        postalCode: shippingDetails.postalCode,
-        phone: shippingDetails.phone,
-        totalAmount: total,
-        paymentMethod: paymentMethod,
-        
-        // 2. Create the "Order Items" automatically
-        items: {
-          create: items.map((item: any) => ({
-            productId: item.id,
-            quantity: item.quantity,
-            price: item.price // Store price at time of purchase
-          }))
-        }
-      }
-    })
-
-    return NextResponse.json({ success: true, orderId: order.id })
-    
-  } catch (error) {
-    console.error("Order Error:", error)
-    return NextResponse.json({ success: false, error: "Failed to create order" }, { status: 500 })
+  if (!order) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
+
+  return NextResponse.json(order)
+}
+
+====================
+FILE PATH: .\src\app\api\search\route.ts
+====================
+
+import { NextResponse } from "next/server";
+import { searchProducts } from "@/app/actions";
+
+export async function GET(req: Request) {
+  try {
+    const url = new URL(req.url);
+    const q = url.searchParams.get("q") || undefined;
+    const minPrice = url.searchParams.get("minPrice") ? Number(url.searchParams.get("minPrice")) : undefined;
+    const maxPrice = url.searchParams.get("maxPrice") ? Number(url.searchParams.get("maxPrice")) : undefined;
+    const sort = url.searchParams.get("sort") || undefined;
+
+    const products = await searchProducts({
+      query: q,
+      minPrice,
+      maxPrice,
+      sort
+    });
+
+    return NextResponse.json(products);
+  } catch (error) {
+    console.error("Search API error:", error);
+    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
+  }
+}
+
+====================
+FILE PATH: .\src\app\careers\page.tsx
+====================
+
+import { prisma } from "@/lib/prisma"
+import { CareersList } from "@/components/careers/CareersList"
+
+export const dynamic = "force-dynamic" // Ensures we always see new jobs immediately
+
+export default async function CareersPage() {
+  // 1. Fetch Active Jobs from Database
+  const jobs = await prisma.job.findMany({
+    where: { isActive: true },
+    orderBy: { createdAt: "desc" }
+  })
+
+  return (
+    <div className="bg-white min-h-screen">
+      {/* Hero Section */}
+      <div className="bg-gray-900 text-white py-20 px-4 text-center">
+        <h1 className="text-4xl md:text-5xl font-bold mb-6">Join Our Mission</h1>
+        <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+          We’re building the future of commerce. Browse our open positions below.
+        </p>
+      </div>
+
+      {/* 2. Render the Client List with DB Data */}
+      <CareersList initialJobs={jobs} />
+    </div>
+  )
+}
+
+====================
+FILE PATH: .\src\app\careers\[id]\page.tsx
+====================
+
+import { notFound } from "next/navigation"
+import { prisma } from "@/lib/prisma" // Use Database
+import { ApplicationForm } from "@/components/careers/ApplicationForm"
+import { MapPin, Clock, DollarSign, ArrowLeft } from "lucide-react"
+import Link from "next/link"
+
+interface PageProps {
+  params: Promise<{ id: string }> // Correct type for Next.js 15+
+}
+
+export default async function JobDetailPage({ params }: PageProps) {
+  // 1. Await params before using them (Fixes the error)
+  const { id } = await params
+
+  // 2. Fetch from Database
+  const job = await prisma.job.findUnique({
+    where: { id }
+  })
+
+  if (!job) {
+    notFound()
+  }
+
+  return (
+    <div className="bg-gray-50 min-h-screen py-12">
+      <div className="max-w-4xl mx-auto px-4">
+        
+        <Link href="/careers" className="inline-flex items-center text-sm text-gray-600 hover:text-black mb-8 transition">
+          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Careers
+        </Link>
+
+        {/* Header */}
+        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-8">
+          <span className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium mb-4 inline-block">
+            {job.department}
+          </span>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{job.title}</h1>
+          
+          <div className="flex flex-wrap gap-6 text-sm text-gray-500">
+            <div className="flex items-center gap-2"><MapPin className="w-4 h-4"/> {job.location}</div>
+            <div className="flex items-center gap-2"><Clock className="w-4 h-4"/> {job.type}</div>
+            <div className="flex items-center gap-2"><DollarSign className="w-4 h-4"/> {job.salary}</div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Details Column */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+              <h2 className="text-xl font-bold mb-4">About the Role</h2>
+              <p className="text-gray-600 leading-relaxed mb-6 whitespace-pre-line">
+                {job.description}
+              </p>
+
+              <h2 className="text-xl font-bold mb-4">Requirements</h2>
+              <ul className="list-disc pl-5 space-y-2 text-gray-600 mb-6">
+                {/* Requirements are stored as an array of strings in DB */}
+                {job.requirements.map((req, i) => (
+                  <li key={i}>{req}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Application Form Column */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-8">
+              {/* Pass job title to the form we created earlier */}
+              <ApplicationForm jobTitle={job.title} />
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  )
 }
 
 ====================
@@ -11382,266 +12058,198 @@ export default function CheckoutPage() {
 }
 
 ====================
-FILE PATH: .\src\app\dashboard\page.tsx
+FILE PATH: .\src\app\contact\page.tsx
 ====================
 
 "use client"
 
 import { useState } from "react"
-import { useSession, signOut } from "next-auth/react"
-import { 
-  Package, MapPin, CreditCard, Star, LogOut, 
-  LayoutDashboard, Truck, User as UserIcon, Plus 
-} from "lucide-react"
-import { getUserDashboard, addAddress, addPaymentMethod, submitReview } from "@/app/actions/user"
-import { formatPrice, formatDate, renderStars } from "@/lib/shop-utils"
-import Link from "next/link"
+import { Mail, Phone, MapPin, ChevronDown, ChevronUp, Send } from "lucide-react"
 
-// Simple loading skeleton if needed
-function Loading() {
-  return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading Dashboard...</div>
-}
+export default function ContactPage() {
+  const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" })
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
 
-export default function DashboardPage() {
-  const { data: session, status } = useSession()
-  const [data, setData] = useState<any>(null)
-  const [activeTab, setActiveTab] = useState("overview")
-  const [loading, setLoading] = useState(true)
+  // 1. FAQ Data
+  const faqs = [
+    { question: "How do I track my order?", answer: "You can track your order status in real-time by visiting the 'Order Tracking' link in the footer and entering your Order ID." },
+    { question: "What is your return policy?", answer: "We offer a 30-day return policy for all unused items in original packaging. Refunds are processed within 5-7 business days." },
+    { question: "Do you ship internationally?", answer: "Currently, we only ship within Pakistan. We plan to expand to international markets soon." },
+    { question: "Can I change my delivery address?", answer: "Yes, if your order is still 'Pending', you can contact support to update the address." }
+  ]
 
-  // Fetch data on load
-  useState(() => {
-    if (status === "authenticated") {
-      getUserDashboard().then(res => {
-        setData(res)
-        setLoading(false)
+  // 2. Handle Form Submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    
+    // Simulate API Call
+    try {
+      await fetch("/api/contact", {
+        method: "POST",
+        body: JSON.stringify(formData)
       })
+      setSuccess(true)
+      setFormData({ name: "", email: "", subject: "", message: "" })
+      setTimeout(() => setSuccess(false), 5000)
+    } catch (error) {
+      alert("Failed to send message")
+    } finally {
+      setLoading(false)
     }
-  })
-
-  if (status === "loading" || loading) return <Loading />
-  if (status === "unauthenticated") return <div className="p-10 text-center">Please log in.</div>
-
-  // --- SUB-COMPONENTS ---
-
-  const OverviewTab = () => {
-    // Find active order (Status not delivered/cancelled)
-    const activeOrder = data.orders.find((o: any) => ['PENDING', 'SHIPPED'].includes(o.status))
-
-    return (
-      <div className="space-y-6">
-        {/* Shipment Tracker */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
-          <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-            <Truck className="w-5 h-5"/> Shipment Status
-          </h3>
-          {activeOrder ? (
-            <div>
-              <div className="flex justify-between text-sm opacity-90 mb-2">
-                <span>Order #{activeOrder.id.slice(0,8)}</span>
-                <span className="font-bold uppercase tracking-wider">{activeOrder.status}</span>
-              </div>
-              <div className="w-full bg-white/20 rounded-full h-2 mb-4">
-                <div 
-                  className="bg-white h-2 rounded-full transition-all duration-1000" 
-                  style={{ width: activeOrder.status === 'SHIPPED' ? '60%' : '10%' }}
-                ></div>
-              </div>
-              <p className="text-sm">Estimated Delivery: {new Date(Date.now() + 86400000 * 3).toLocaleDateString()}</p>
-            </div>
-          ) : (
-            <p className="opacity-80">No active shipments. Time to shop!</p>
-          )}
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white p-4 rounded-xl border text-center">
-            <div className="text-2xl font-bold">{data.orders.length}</div>
-            <div className="text-xs text-gray-500 uppercase">Orders</div>
-          </div>
-          <div className="bg-white p-4 rounded-xl border text-center">
-            <div className="text-2xl font-bold">{data.reviews.length}</div>
-            <div className="text-xs text-gray-500 uppercase">Reviews</div>
-          </div>
-          <div className="bg-white p-4 rounded-xl border text-center">
-            <div className="text-2xl font-bold">{data.wishlist?.length || 0}</div>
-            <div className="text-xs text-gray-500 uppercase">Saved</div>
-          </div>
-        </div>
-      </div>
-    )
   }
 
-  const OrdersTab = () => (
-    <div className="space-y-4">
-      <h2 className="font-bold text-xl mb-4">Order History</h2>
-      {data.orders.map((order: any) => (
-        <div key={order.id} className="bg-white border rounded-xl p-4 hover:shadow-sm transition">
-          <div className="flex justify-between items-start mb-4 border-b pb-3">
-            <div>
-              <p className="font-bold text-gray-900">Order #{order.id.slice(0, 8)}</p>
-              <p className="text-xs text-gray-500">{formatDate(order.createdAt)}</p>
-            </div>
-            <div className="text-right">
-              <span className="block font-bold">{formatPrice(order.totalAmount)}</span>
-              <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600">
-                {order.status}
-              </span>
-            </div>
-          </div>
-          <div className="space-y-2">
-            {order.items.map((item: any) => (
-              <div key={item.id} className="flex gap-3 items-center">
-                <div className="w-10 h-10 bg-gray-100 rounded bg-cover bg-center" style={{backgroundImage: `url(${item.product.imageUrl || '/placeholder.jpg'})`}}></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium line-clamp-1">{item.product.name}</p>
-                  <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-
-  const ReviewsTab = () => (
-    <div className="space-y-8">
-      {/* Pending Reviews */}
-      {data.pendingReviews.length > 0 && (
-        <div>
-          <h3 className="font-bold text-lg mb-4 text-orange-600">Waiting for Review</h3>
-          <div className="grid gap-4">
-            {data.pendingReviews.map((product: any) => (
-              <div key={product.id} className="bg-orange-50 border border-orange-100 p-4 rounded-xl flex items-center gap-4">
-                <div className="w-12 h-12 bg-gray-200 rounded-lg bg-cover" style={{backgroundImage: `url(${product.imageUrl})`}}></div>
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{product.name}</p>
-                  <p className="text-xs text-orange-500">How was it?</p>
-                </div>
-                <form action={async (fd) => {
-                    await submitReview(product.id, Number(fd.get('rating')), fd.get('comment') as string)
-                    window.location.reload() // Quick refresh
-                }} className="flex gap-2">
-                    <select name="rating" className="bg-white border rounded text-sm p-1">
-                        <option value="5">5 ★</option>
-                        <option value="4">4 ★</option>
-                        <option value="3">3 ★</option>
-                    </select>
-                    <input name="comment" placeholder="Write a thought..." className="bg-white border rounded text-sm p-1 w-32" required />
-                    <button className="bg-black text-white px-3 rounded text-xs font-bold">Post</button>
-                </form>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Past Reviews */}
-      <div>
-        <h3 className="font-bold text-lg mb-4">Past Reviews</h3>
-        {data.reviews.map((review: any) => (
-            <div key={review.id} className="bg-white border rounded-xl p-4 mb-3">
-                <div className="flex justify-between mb-2">
-                    <span className="font-medium text-sm">{review.product.name}</span>
-                    <span className="text-xs text-gray-400">{formatDate(review.createdAt)}</span>
-                </div>
-                <div className="flex text-yellow-400 mb-2 gap-0.5">
-                    {renderStars(review.rating).map((f, i) => <Star key={i} size={12} className={f ? "fill-current" : "text-gray-200"} />)}
-                </div>
-                <p className="text-sm text-gray-600">"{review.comment}"</p>
-            </div>
-        ))}
-      </div>
-    </div>
-  )
-
-  const AddressesTab = () => (
-    <div>
-        <div className="flex justify-between items-center mb-6">
-            <h2 className="font-bold text-xl">Address Book</h2>
-        </div>
-        
-        <div className="grid gap-4 mb-8">
-            {data.addresses.map((addr: any) => (
-                <div key={addr.id} className="border p-4 rounded-xl relative group bg-white">
-                    <p className="font-bold text-sm">{addr.fullName}</p>
-                    <p className="text-sm text-gray-600">{addr.street}</p>
-                    <p className="text-sm text-gray-600">{addr.city}, {addr.postalCode}</p>
-                    <p className="text-xs text-gray-400 mt-2">{addr.phone}</p>
-                    {addr.isDefault && <span className="absolute top-4 right-4 bg-gray-100 text-[10px] font-bold px-2 py-1 rounded">DEFAULT</span>}
-                </div>
-            ))}
-        </div>
-
-        {/* Add Address Form */}
-        <form action={async (fd) => { await addAddress(fd); window.location.reload(); }} className="bg-gray-50 p-6 rounded-2xl border">
-            <h3 className="font-bold text-sm mb-4 uppercase text-gray-500">Add New Address</h3>
-            <div className="grid gap-3">
-                <input name="fullName" placeholder="Full Name" className="p-2 border rounded" required />
-                <input name="street" placeholder="Street Address" className="p-2 border rounded" required />
-                <div className="grid grid-cols-2 gap-3">
-                    <input name="city" placeholder="City" className="p-2 border rounded" required />
-                    <input name="postalCode" placeholder="Postal Code" className="p-2 border rounded" required />
-                </div>
-                <input name="phone" placeholder="Phone Number" className="p-2 border rounded" required />
-                <button className="bg-black text-white py-3 rounded-lg font-bold hover:bg-gray-800">Save Address</button>
-            </div>
-        </form>
-    </div>
-  )
-
   return (
-    <div className="min-h-screen bg-gray-50 pt-8 pb-20">
-      <div className="max-w-5xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
+    <div className="bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="bg-indigo-900 text-white py-16 text-center">
+        <h1 className="text-4xl font-bold mb-4">Contact Support</h1>
+        <p className="text-indigo-200">We're here to help 24/7</p>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-2 gap-12">
         
-        {/* Sidebar */}
-        <div className="md:col-span-1">
-            <div className="bg-white rounded-2xl border p-6 text-center mb-6">
-                <div className="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-gray-400">
-                    {session?.user?.name?.[0] || "U"}
-                </div>
-                <h2 className="font-bold truncate">{session?.user?.name}</h2>
-                <p className="text-xs text-gray-500 truncate">{session?.user?.email}</p>
+        {/* LEFT COLUMN: Form */}
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h2>
+          
+          {success && (
+            <div className="bg-green-50 text-green-700 p-4 rounded-lg mb-6 flex items-center">
+              <span className="mr-2">✅</span> Message sent successfully! We'll reply soon.
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">Name</label>
+                <input 
+                  required 
+                  className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" 
+                  value={formData.name}
+                  onChange={e => setFormData({...formData, name: e.target.value})}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">Email</label>
+                <input 
+                  required 
+                  type="email" 
+                  className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                  value={formData.email}
+                  onChange={e => setFormData({...formData, email: e.target.value})}
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Subject</label>
+              <select 
+                className="w-full border p-3 rounded-lg bg-white"
+                value={formData.subject}
+                onChange={e => setFormData({...formData, subject: e.target.value})}
+              >
+                <option value="">Select a Topic...</option>
+                <option value="Order Issue">Order Issue</option>
+                <option value="Refund">Refund Request</option>
+                <option value="General">General Inquiry</option>
+              </select>
             </div>
 
-            <nav className="space-y-2">
-                {[
-                    { id: 'overview', icon: LayoutDashboard, label: 'Overview' },
-                    { id: 'orders', icon: Package, label: 'Orders' },
-                    { id: 'addresses', icon: MapPin, label: 'Addresses' },
-                    { id: 'reviews', icon: Star, label: 'Reviews' },
-                ].map((item) => (
-                    <button
-                        key={item.id}
-                        onClick={() => setActiveTab(item.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
-                            activeTab === item.id 
-                            ? 'bg-black text-white shadow-lg' 
-                            : 'bg-white text-gray-600 hover:bg-gray-100'
-                        }`}
-                    >
-                        <item.icon size={18} /> {item.label}
-                    </button>
-                ))}
-                <button 
-                    onClick={() => signOut({ callbackUrl: '/' })}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition"
-                >
-                    <LogOut size={18} /> Sign Out
-                </button>
-            </nav>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Message</label>
+              <textarea 
+                required
+                rows={5} 
+                className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                value={formData.message}
+                onChange={e => setFormData({...formData, message: e.target.value})}
+              />
+            </div>
+
+            <button 
+              disabled={loading}
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition flex justify-center items-center gap-2"
+            >
+              {loading ? "Sending..." : <><Send className="w-4 h-4" /> Send Message</>}
+            </button>
+          </form>
         </div>
 
-        {/* Content Area */}
-        <div className="md:col-span-3">
-            {activeTab === 'overview' && <OverviewTab />}
-            {activeTab === 'orders' && <OrdersTab />}
-            {activeTab === 'reviews' && <ReviewsTab />}
-            {activeTab === 'addresses' && <AddressesTab />}
-        </div>
+        {/* RIGHT COLUMN: Info & FAQ */}
+        <div className="space-y-8">
+          
+          {/* Contact Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-white p-6 rounded-xl border border-gray-100 flex flex-col items-center text-center hover:shadow-md transition">
+              <div className="bg-indigo-50 p-3 rounded-full mb-3 text-indigo-600"><Phone className="w-6 h-6" /></div>
+              <h3 className="font-bold text-gray-900">Phone Support</h3>
+              <p className="text-sm text-gray-500 mt-1">+1 (555) 123-4567</p>
+              <p className="text-xs text-green-600 font-medium mt-1">Available 9am - 5pm</p>
+            </div>
+            <div className="bg-white p-6 rounded-xl border border-gray-100 flex flex-col items-center text-center hover:shadow-md transition">
+              <div className="bg-indigo-50 p-3 rounded-full mb-3 text-indigo-600"><Mail className="w-6 h-6" /></div>
+              <h3 className="font-bold text-gray-900">Email Us</h3>
+              <p className="text-sm text-gray-500 mt-1">support@ecom.com</p>
+              <p className="text-xs text-blue-600 font-medium mt-1">Response in 24h</p>
+            </div>
+          </div>
 
+          {/* Interactive FAQs */}
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <div className="space-y-3">
+              {faqs.map((faq, index) => (
+                <div key={index} className="border-b border-gray-100 last:border-0">
+                  <button 
+                    onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                    className="w-full flex justify-between items-center py-4 text-left focus:outline-none"
+                  >
+                    <span className={`font-medium ${openFaq === index ? "text-indigo-600" : "text-gray-700"}`}>
+                      {faq.question}
+                    </span>
+                    {openFaq === index ? <ChevronUp className="w-4 h-4 text-gray-400"/> : <ChevronDown className="w-4 h-4 text-gray-400"/>}
+                  </button>
+                  {openFaq === index && (
+                    <div className="pb-4 text-gray-500 text-sm leading-relaxed animate-in slide-in-from-top-2">
+                      {faq.answer}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
       </div>
+    </div>
+  )
+}
+
+====================
+FILE PATH: .\src\app\dashboard\page.tsx
+====================
+
+import { getUserDashboard } from "@/app/actions/user"
+import { redirect } from "next/navigation"
+import { DashboardClient } from "@/components/dashboard/DashboardClient"
+
+export default async function DashboardPage() {
+  // 1. Fetch data on the server
+  const user = await getUserDashboard()
+
+  // 2. Protect the route
+  if (!user) {
+    redirect("/login")
+  }
+
+  // 3. Render the Client Component with the data
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <h1 className="text-3xl font-bold mb-8">My Account</h1>
+      <DashboardClient user={user} />
     </div>
   )
 }
@@ -11712,90 +12320,104 @@ export default function ForgotPasswordPage() {
 FILE PATH: .\src\app\login\page.tsx
 ====================
 
-"use client"; // Required for forms in Next.js
+"use client";
 
 import { useState } from "react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(""); // Clear previous errors
+    e.preventDefault(); // [IMPORTANT] Stop page refresh
+    setLoading(true);
+    setError("");
 
-    try {
-      // 1. Send data to your API (The same way Thunder Client did)
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+    // Use NextAuth to sign in
+    const result = await signIn("credentials", {
+      redirect: false, // We handle redirect manually
+      email,
+      password,
+    });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Login failed");
-      }
-
-      // 2. If success, redirect based on role
-      if (data.role === "ADMIN") {
-        router.push("/admin/dashboard");
-      } else {
-        router.push("/"); // Regular users go to homepage
-      }
-      
-    } catch (err: any) {
-      setError(err.message);
+    if (result?.error) {
+      setError("Invalid email or password");
+      setLoading(false);
+    } else {
+      // Login Success!
+      // Check if user is Admin or Customer (optional logic) to redirect
+      router.refresh(); // Update session
+      router.push("/admin/dashboard"); // Redirect user
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded shadow-md">
-        <h2 className="text-2xl font-bold text-center text-gray-900">Sign in to Store</h2>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md space-y-8 bg-white p-8 shadow-lg rounded-lg">
+        <div>
+          <h2 className="text-center text-3xl font-bold text-gray-900">
+            Sign in to your account
+          </h2>
+        </div>
         
-        {error && (
-          <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="admin@store.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="••••••••"
-            />
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {error && (
+            <div className="bg-red-50 text-red-500 p-3 rounded text-sm text-center">
+              {error}
+            </div>
+          )}
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Email address
+              </label>
+              <input
+                type="email"
+                required
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                type="password"
+                required
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
           </div>
 
           <button
             type="submit"
-            className="w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            disabled={loading}
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
-            Sign In
+            {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
+        
+        <div className="text-center mt-4">
+           <p className="text-sm text-gray-600">
+             Don't have an account?{" "}
+             <Link href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
+               Sign up
+             </Link>
+           </p>
+        </div>
       </div>
     </div>
   );
@@ -11925,6 +12547,76 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
 }
 
 ====================
+FILE PATH: .\src\app\privacy\page.tsx
+====================
+
+import Link from "next/link"
+
+export default function PrivacyPage() {
+  return (
+    <div className="max-w-3xl mx-auto px-6 py-16">
+      <div className="border-b pb-8 mb-8">
+        <h1 className="text-4xl font-bold mb-4">Privacy Policy</h1>
+        <p className="text-gray-500">Last updated: December 2025</p>
+      </div>
+
+      <div className="space-y-10 text-gray-700 leading-relaxed">
+        <section>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">1. Information We Collect</h2>
+          <p>
+            We collect information you provide directly to us. For example, we collect information when you create an account, 
+            subscribe, participate in any interactive features of our services, fill out a form, request customer support, 
+            or otherwise communicate with us.
+          </p>
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-gray-50 p-4 rounded border">
+              <h3 className="font-semibold text-sm mb-1">Personal Data</h3>
+              <p className="text-xs text-gray-500">Name, Email, Phone, Address</p>
+            </div>
+            <div className="bg-gray-50 p-4 rounded border">
+              <h3 className="font-semibold text-sm mb-1">Usage Data</h3>
+              <p className="text-xs text-gray-500">IP Address, Browser Type, Pages Visited</p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">2. How We Use Information</h2>
+          <p>
+            We use the information we collect to provide, maintain, and improve our services, such as to process transactions, 
+            identify you as a user, and send you administrative notifications.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">3. Cookies & Tracking</h2>
+          <p>
+            We use cookies and similar tracking technologies to track the activity on our Service and hold certain information.
+            You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">4. Data Protection</h2>
+          <p>
+            The security of your data is important to us, but remember that no method of transmission over the Internet, 
+            or method of electronic storage is 100% secure. While we strive to use commercially acceptable means to protect 
+            your Personal Data, we cannot guarantee its absolute security.
+          </p>
+        </section>
+
+        <div className="pt-8 border-t">
+          <p className="text-sm text-gray-500">
+            By using our website, you hereby consent to our Privacy Policy and agree to its Terms.
+            If you need more information, feel free to <Link href="/contact" className="text-indigo-600 underline">contact us</Link>.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+====================
 FILE PATH: .\src\app\products\[id]\page.tsx
 ====================
 
@@ -11981,7 +12673,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const productForCart = {
     id: product.id,
     name: product.name,
-    price: product.price.toNumber(),
+    price: product.price,
     imageUrl: product.imageUrl,
     category: product.category
   }
@@ -12131,8 +12823,7 @@ FILE PATH: .\src\app\search\page.tsx
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { searchProducts } from '@/app/actions'; 
-import { ProductCard } from '@/components/products/ProductCard'; // [NEW] Use the shared card
+import { ProductCard } from '@/components/products/ProductCard';
 import { 
   Search, Camera, Image as ImageIcon, SlidersHorizontal, 
   X, Star, Grid, List, HelpCircle, QrCode, RefreshCcw, 
@@ -12154,33 +12845,44 @@ export default function SearchPage() {
   const [activeTab, setActiveTab] = useState('price'); 
   const [priceRange, setPriceRange] = useState([0, 2000]);
   const [minRating, setMinRating] = useState<number | null>(null);
-  const [layout, setLayout] = useState<'grid' | 'list'>('grid'); // Typed for component
+  const [layout, setLayout] = useState<'grid' | 'list'>('grid');
 
-  // Camera States
   const [cameraActive, setCameraActive] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync Query
   useEffect(() => { setQuery(searchParams.get('q') || ''); }, [searchParams]);
 
-  // Fetch Data
+  // Fetch Data — now uses API route instead of server import
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
       try {
         let sortParam = activeSort === 'Price' ? 'Price Low-High' : activeSort;
-        const data = await searchProducts({ query, minPrice: priceRange[0], maxPrice: priceRange[1], sort: sortParam });
+
+        const params = new URLSearchParams();
+        if (query) params.set('q', query);
+        params.set('minPrice', String(priceRange[0]));
+        params.set('maxPrice', String(priceRange[1]));
+        if (sortParam) params.set('sort', sortParam);
+
+        const res = await fetch(`/api/search?${params.toString()}`, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`Search API responded with ${res.status}`);
+        const data = await res.json();
+
         setProducts(minRating ? data.filter((p: any) => p.rating >= minRating) : data);
-      } catch (error) { console.error(error); } 
-      finally { setIsLoading(false); }
+      } catch (error) { 
+        console.error(error); 
+      } finally { 
+        setIsLoading(false); 
+      }
     }
     const t = setTimeout(fetchData, 500);
     return () => clearTimeout(t);
   }, [query, priceRange, minRating, activeSort]);
 
-  // --- CAMERA HANDLERS (Simplified for brevity) ---
+  // --- CAMERA HANDLERS (Simplified) ---
   const startCamera = async () => { /* ... same as before ... */ };
   const stopCamera = () => { /* ... same as before ... */ };
   const toggleImageSearch = () => { setIsImageSearchOpen(!isImageSearchOpen); };
@@ -12223,10 +12925,8 @@ export default function SearchPage() {
             {products.length === 0 ? (
                 <div className="text-center py-32 text-gray-400">No products found.</div>
             ) : (
-                // Responsive Grid: 1 col mobile, 2 col sm, 3 col md, 4 col lg
                 <div className={`grid gap-4 ${layout === 'grid' ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1'}`}>
                   {products.map((product) => (
-                    // [UPDATED] Using the reusable card
                     <ProductCard key={product.id} product={product} layout={layout} />
                   ))}
                 </div>
@@ -12240,7 +12940,6 @@ export default function SearchPage() {
          <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center" onClick={() => setIsFilterOpen(false)}>
             <div className="bg-white w-full max-w-md p-6 rounded-t-2xl sm:rounded-2xl" onClick={e => e.stopPropagation()}>
                <div className="flex justify-between mb-4"><h2 className="font-bold">Filters</h2><button onClick={() => setIsFilterOpen(false)}><X/></button></div>
-               {/* Simplified Filter Content */}
                <div className="space-y-4">
                   <div><p className="text-sm font-bold mb-2">Price Range</p><div className="flex gap-2"><input type="number" className="border p-2 w-1/2 rounded" value={priceRange[0]} onChange={e => setPriceRange([+e.target.value, priceRange[1]])} /><input type="number" className="border p-2 w-1/2 rounded" value={priceRange[1]} onChange={e => setPriceRange([priceRange[0], +e.target.value])} /></div></div>
                   <button onClick={() => setIsFilterOpen(false)} className="w-full bg-black text-white py-3 rounded-lg font-bold">Apply</button>
@@ -12253,105 +12952,420 @@ export default function SearchPage() {
 }
 
 ====================
+FILE PATH: .\src\app\settings\page.tsx
+====================
+
+"use client"
+
+import { useTheme } from "next-themes"
+import { signOut } from "next-auth/react"
+import { Moon, Sun, Monitor, LogOut, ChevronRight, User } from "lucide-react"
+import { useEffect, useState } from "react"
+
+export default function SettingsPage() {
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  // useEffect only runs on the client, so now we can safely show the UI
+  // This prevents hydration mismatch errors with the theme icons
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading settings...</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-secondary/30 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-2xl mx-auto space-y-8">
+        
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Settings</h1>
+          <p className="mt-2 text-muted-foreground">
+            Manage your account preferences and website appearance.
+          </p>
+        </div>
+
+        {/* Section: Appearance */}
+        <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-border">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <Sun className="w-5 h-5 text-primary" />
+              Appearance
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Customize how the application looks on your device.
+            </p>
+          </div>
+          
+          <div className="p-6">
+            <div className="grid grid-cols-3 gap-4">
+              {/* Light Mode Button */}
+              <button
+                onClick={() => setTheme("light")}
+                className={`
+                  flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all
+                  ${theme === 'light' 
+                    ? 'border-primary bg-primary/5 text-primary' 
+                    : 'border-border hover:border-primary/50 text-muted-foreground hover:bg-secondary'}
+                `}
+              >
+                <Sun className="w-6 h-6 mb-2" />
+                <span className="text-sm font-medium">Light</span>
+              </button>
+
+              {/* Dark Mode Button */}
+              <button
+                onClick={() => setTheme("dark")}
+                className={`
+                  flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all
+                  ${theme === 'dark' 
+                    ? 'border-primary bg-primary/5 text-primary' 
+                    : 'border-border hover:border-primary/50 text-muted-foreground hover:bg-secondary'}
+                `}
+              >
+                <Moon className="w-6 h-6 mb-2" />
+                <span className="text-sm font-medium">Dark</span>
+              </button>
+
+              {/* System Mode Button */}
+              <button
+                onClick={() => setTheme("system")}
+                className={`
+                  flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all
+                  ${theme === 'system' 
+                    ? 'border-primary bg-primary/5 text-primary' 
+                    : 'border-border hover:border-primary/50 text-muted-foreground hover:bg-secondary'}
+                `}
+              >
+                <Monitor className="w-6 h-6 mb-2" />
+                <span className="text-sm font-medium">System</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Section: Account Actions */}
+        <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+           <div className="p-6 border-b border-border">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <User className="w-5 h-5 text-primary" />
+              Account
+            </h2>
+          </div>
+
+          <div className="p-0">
+            {/* Account Settings Item (Placeholder) */}
+            <button className="w-full flex items-center justify-between p-6 hover:bg-secondary transition-colors border-b border-border text-left">
+              <div>
+                <div className="font-medium text-foreground">Profile Information</div>
+                <div className="text-sm text-muted-foreground">Update your name and email address</div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
+
+            {/* Sign Out Button (DANGER ZONE) */}
+            <div className="p-6 bg-secondary/20">
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-destructive text-destructive-foreground font-medium rounded-lg hover:bg-destructive/90 transition-colors shadow-sm"
+              >
+                <LogOut className="w-5 h-5" />
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
+====================
 FILE PATH: .\src\app\signup\page.tsx
+====================
+
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+export default function SignupPage() {
+  const router = useRouter();
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(""); // Clear previous errors
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // If the server says "This email is already registered", we show it here
+        throw new Error(data.error || "Registration failed");
+      }
+
+      // Success Logic
+      setShowSuccess(true);
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
+
+    } catch (err: any) {
+      setError(err.message); // Displays the exact error from the backend
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+      
+      {/* SUCCESS POPUP */}
+      {showSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-sm w-full transform transition-all scale-105">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+              <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Account Created!</h3>
+            <p className="text-gray-500 mb-4">Welcome to the store.</p>
+            <p className="text-sm text-indigo-600 font-semibold animate-pulse">Redirecting to login...</p>
+          </div>
+        </div>
+      )}
+
+      {/* MAIN FORM */}
+      <div className="w-full max-w-md space-y-8 bg-white p-8 shadow-lg rounded-lg">
+        <h2 className="text-center text-3xl font-bold text-gray-900">Create Account</h2>
+
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {/* ERROR BOX */}
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded text-sm relative" role="alert">
+              <span className="block sm:inline font-medium">{error}</span>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Full Name</label>
+              <input
+                type="text"
+                required
+                placeholder="John Doe"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Email Address</label>
+              <input
+                type="email"
+                required
+                placeholder="john@example.com"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Password</label>
+              <input
+                type="password"
+                required
+                placeholder="Min 6 characters"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading || showSuccess}
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? "Checking..." : "Sign Up"}
+          </button>
+        </form>
+        
+        <div className="text-center mt-4">
+           <p className="text-sm text-gray-600">
+             Already have an account?{" "}
+             <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500 hover:underline">
+               Log in
+             </Link>
+           </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+====================
+FILE PATH: .\src\app\terms\page.tsx
+====================
+
+import Link from "next/link"
+
+export default function TermsPage() {
+  return (
+    <div className="max-w-3xl mx-auto px-6 py-16">
+      <div className="border-b pb-8 mb-8">
+        <h1 className="text-4xl font-bold mb-4">Terms of Service</h1>
+        <p className="text-gray-500">Effective Date: December 16, 2025</p>
+      </div>
+
+      <div className="space-y-12 text-gray-700 leading-relaxed">
+        <section>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">1. Acceptance of Terms</h2>
+          <p>
+            By accessing and using our website ("Service"), you accept and agree to be bound by the terms 
+            and provision of this agreement. In addition, when using these particular services, you 
+            shall be subject to any posted guidelines or rules applicable to such services.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">2. Use of Service</h2>
+          <p className="mb-4">
+            You agree not to use the Service for any unlawful purpose or any purpose prohibited under this clause. 
+            You agree not to use the Service in any way that could damage the Site, the Services, or the general business of the company.
+          </p>
+          <ul className="list-disc pl-5 space-y-2 bg-gray-50 p-6 rounded-lg border border-gray-100">
+            <li>You must be at least 18 years of age.</li>
+            <li>You must not harass, abuse, or threaten others.</li>
+            <li>You must not violate any intellectual property rights.</li>
+            <li>You must not upload viruses or malicious code.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">3. Accounts & Security</h2>
+          <p>
+            You are responsible for maintaining the confidentiality of your account and password and for restricting access to your computer. 
+            You agree to accept responsibility for all activities that occur under your account or password.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">4. Termination</h2>
+          <p>
+            We may terminate or suspend access to our Service immediately, without prior notice or liability, for any reason whatsoever, 
+            including without limitation if you breach the Terms.
+          </p>
+        </section>
+
+        <section className="bg-indigo-50 p-6 rounded-xl text-center">
+          <h3 className="font-bold text-gray-900 mb-2">Questions about these terms?</h3>
+          <p className="text-sm text-gray-600 mb-4">Our legal team is available to assist you.</p>
+          <Link href="/contact" className="text-indigo-600 font-bold hover:underline">
+            Contact Legal Support &rarr;
+          </Link>
+        </section>
+      </div>
+    </div>
+  )
+}
+
+====================
+FILE PATH: .\src\app\tracking\page.tsx
 ====================
 
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Loader2 } from "lucide-react"
+import { formatPrice } from "@/lib/format" // Or use your currency helper
 
-export default function SignupPage() {
-  const [formData, setFormData] = useState({ name: "", email: "", password: "" })
-  const [error, setError] = useState("")
+export default function OrderTrackingPage() {
+  const [orderId, setOrderId] = useState("")
+  const [status, setStatus] = useState<any>(null)
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [error, setError] = useState("")
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const checkOrder = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
+    setStatus(null)
 
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    })
-
-    if (res.ok) {
-      router.push("/login?message=Account created! Please log in.")
-    } else {
+    try {
+      // We need to create this API endpoint next
+      const res = await fetch(`/api/orders/${orderId}`)
+      if (!res.ok) throw new Error("Order not found")
       const data = await res.json()
-      setError(data.message || "Registration failed")
+      setStatus(data)
+    } catch (err) {
+      setError("Invalid Order ID. Please check and try again.")
+    } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md border border-gray-100">
-        <h1 className="text-2xl font-bold text-center mb-2">Create Account</h1>
-        <p className="text-gray-500 text-center mb-6 text-sm">Join us to start shopping</p>
-        
-        {error && (
-          <div className="bg-red-50 text-red-500 p-3 rounded-lg mb-4 text-sm text-center">
-            {error}
-          </div>
-        )}
+    <div className="max-w-xl mx-auto px-4 py-16">
+      <h1 className="text-3xl font-bold text-center mb-8">Track Your Order</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-            <input 
-              required
-              type="text" 
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black outline-none"
-              placeholder="John Doe"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input 
-              required
-              type="email" 
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black outline-none"
-              placeholder="john@example.com"
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input 
-              required
-              type="password" 
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black outline-none"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={(e) => setFormData({...formData, password: e.target.value})}
-            />
-          </div>
-          
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="animate-spin w-5 h-5"/> : "Sign Up"}
-          </button>
-        </form>
+      <form onSubmit={checkOrder} className="flex gap-4 mb-8">
+        <input
+          type="text"
+          placeholder="Enter Order ID (e.g., clq...)"
+          required
+          className="flex-1 border p-3 rounded-lg"
+          value={orderId}
+          onChange={(e) => setOrderId(e.target.value)}
+        />
+        <button 
+          disabled={loading}
+          className="bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-800 transition"
+        >
+          {loading ? "Searching..." : "Track"}
+        </button>
+      </form>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Already have an account?{" "}
-          <Link href="/login" className="text-indigo-600 font-semibold hover:underline">
-            Log in
-          </Link>
-        </p>
-      </div>
+      {error && <div className="p-4 bg-red-50 text-red-600 rounded-lg text-center">{error}</div>}
+
+      {status && (
+        <div className="border p-6 rounded-lg shadow-sm bg-white">
+          <div className="flex justify-between items-center border-b pb-4 mb-4">
+            <div>
+              <p className="text-sm text-gray-500">Order Status</p>
+              <p className="text-xl font-bold text-indigo-600">{status.status}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-500">Total Amount</p>
+              <p className="text-lg font-bold">Rs. {Number(status.totalAmount).toLocaleString()}</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm"><span className="font-semibold">Date:</span> {new Date(status.createdAt).toLocaleDateString()}</p>
+            <p className="text-sm"><span className="font-semibold">Payment:</span> {status.paymentMethod}</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -12431,6 +13445,73 @@ export default async function WishlistPage() {
         </div>
       )}
     </div>
+  )
+}
+
+====================
+FILE PATH: .\src\components\theme-provider.tsx
+====================
+
+"use client"
+
+import * as React from "react"
+import { ThemeProvider as NextThemesProvider } from "next-themes"
+
+export function ThemeProvider({
+  children,
+  ...props
+}: React.ComponentProps<typeof NextThemesProvider>) {
+  return <NextThemesProvider {...props}>{children}</NextThemesProvider>
+}
+
+====================
+FILE PATH: .\src\components\admin\AdminNav.tsx
+====================
+
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+
+export function AdminNav() {
+  const pathname = usePathname()
+
+  // Helper to check if parent path is active (e.g., /admin/jobs/new is active for /admin/jobs)
+  const isActive = (path: string) => pathname.startsWith(path)
+
+  const linkClass = (path: string) => 
+    `block px-4 py-3 rounded-lg transition ${
+      isActive(path) 
+        ? "bg-indigo-600 text-white shadow-md" 
+        : "hover:bg-slate-800 text-gray-300"
+    }`
+
+  return (
+    <nav className="mt-6 px-4 space-y-2">
+      <Link href="/admin/dashboard" className={linkClass("/admin/dashboard")}>
+        Dashboard
+      </Link>
+      <Link href="/admin/products" className={linkClass("/admin/products")}>
+        Products
+      </Link>
+      <Link href="/admin/orders" className={linkClass("/admin/orders")}>
+        Orders
+      </Link>
+      <Link href="/admin/users" className={linkClass("/admin/users")}>
+        Customers
+      </Link>
+      
+      {/* [NEW] Jobs Tab */}
+      <Link href="/admin/jobs" className={linkClass("/admin/jobs")}>
+        Job Postings
+      </Link>
+      
+      <div className="pt-8">
+        <Link href="/" className="block px-4 py-3 rounded-lg border border-slate-700 text-center text-gray-400 hover:text-white hover:border-white transition">
+          View Store
+        </Link>
+      </div>
+    </nav>
   )
 }
 
@@ -12861,6 +13942,417 @@ export default function VendorOrderManager({ initialData }: { initialData: Recor
 }
 
 ====================
+FILE PATH: .\src\components\careers\ApplicationForm.tsx
+====================
+
+"use client"
+
+import { useState } from "react"
+import { Upload, Send, CheckCircle, X } from "lucide-react"
+
+interface ApplicationFormProps {
+  jobTitle: string
+}
+
+export function ApplicationForm({ jobTitle }: ApplicationFormProps) {
+  const [isOpen, setIsOpen] = useState(false) // Controls the Modal
+  const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    
+    // Simulate API delay
+    setTimeout(() => {
+      setLoading(false)
+      setSubmitted(true)
+      // Close modal after success message (optional delay)
+      setTimeout(() => {
+        setIsOpen(false)
+        setSubmitted(false) // Reset for future use
+      }, 3000)
+    }, 1500)
+  }
+
+  // 1. The "Success" View inside Modal
+  if (submitted) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
+        <div className="bg-white rounded-xl p-8 text-center max-w-md w-full shadow-2xl">
+          <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+          <h3 className="text-2xl font-bold text-green-800">Application Sent!</h3>
+          <p className="text-green-700 mt-2">
+            Good luck! We'll review your application for <strong>{jobTitle}</strong>.
+          </p>
+          <button onClick={() => setIsOpen(false)} className="mt-6 text-sm text-gray-500 hover:text-black">
+            Close Window
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      {/* 2. THE TRIGGER: What shows initially on the page */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm text-center">
+        <h3 className="text-lg font-bold mb-2">Interested in this role?</h3>
+        <p className="text-gray-500 text-sm mb-6">
+          Submit your application today. It only takes a minute.
+        </p>
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="w-full bg-black text-white py-3 rounded-lg font-bold hover:bg-indigo-600 transition shadow-lg"
+        >
+          Apply Now
+        </button>
+      </div>
+
+      {/* 3. THE MODAL: Only appears when isOpen is true */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          
+          {/* Modal Container */}
+          <div className="bg-white rounded-xl w-full max-w-lg h-auto max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col">
+            
+            {/* Modal Header */}
+            <div className="p-4 border-b flex justify-between items-center bg-gray-50 sticky top-0 z-10">
+              <h3 className="font-bold text-lg">Apply: {jobTitle}</h3>
+              <button 
+                onClick={() => setIsOpen(false)} 
+                className="p-2 hover:bg-gray-200 rounded-full transition"
+              >
+                <X className="w-5 h-5 text-gray-500"/>
+              </button>
+            </div>
+            
+            {/* Modal Body (The Form) */}
+            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                  <input required className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-black outline-none" placeholder="Jane" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                  <input required className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-black outline-none" placeholder="Doe" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <input required type="email" className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-black outline-none" placeholder="jane@example.com" />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Resume / CV</label>
+                <div className="border-2 border-dashed border-gray-300 p-6 rounded-lg text-center hover:bg-gray-50 transition cursor-pointer group">
+                  <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2 group-hover:text-black transition" />
+                  <p className="text-xs text-gray-500">Click to upload (PDF, Max 5MB)</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Cover Letter</label>
+                <textarea className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-black outline-none h-24 resize-none" placeholder="Briefly tell us about yourself..."></textarea>
+              </div>
+
+              <div className="pt-2">
+                <button 
+                  disabled={loading}
+                  className="w-full bg-black text-white py-3 rounded-lg font-bold hover:bg-gray-800 transition flex justify-center items-center gap-2 disabled:opacity-70"
+                >
+                  {loading ? "Submitting..." : <>Submit Application <Send className="w-4 h-4" /></>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+====================
+FILE PATH: .\src\components\careers\CareersList.tsx
+====================
+
+"use client"
+
+import { useState } from "react"
+import { MapPin, Clock } from "lucide-react"
+import Link from "next/link"
+
+// Define the shape of a Job based on your Prisma Model
+interface Job {
+  id: string
+  title: string
+  department: string
+  type: string
+  location: string
+  description: string
+  isActive: boolean
+}
+
+interface CareersListProps {
+  initialJobs: Job[]
+}
+
+export function CareersList({ initialJobs }: CareersListProps) {
+  const [filter, setFilter] = useState("All")
+
+  // Filter logic
+  const filteredJobs = filter === "All" 
+    ? initialJobs 
+    : initialJobs.filter(job => job.department === filter)
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-12">
+      {/* Filter Buttons */}
+      <div className="flex flex-wrap gap-4 justify-center mb-12">
+        {["All", "Engineering", "Design", "Marketing", "Sales", "Support"].map((dept) => (
+          <button
+            key={dept}
+            onClick={() => setFilter(dept)}
+            className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
+              filter === dept 
+                ? "bg-black text-white shadow-lg scale-105" 
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {dept}
+          </button>
+        ))}
+      </div>
+
+      {/* Job Grid */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {filteredJobs.length === 0 ? (
+          <div className="col-span-2 text-center text-gray-500 py-12">
+            No open positions found for {filter}.
+          </div>
+        ) : (
+          filteredJobs.map((job) => (
+            <Link 
+              key={job.id} 
+              href={`/careers/${job.id}`} 
+              className="border border-gray-100 p-6 rounded-2xl hover:shadow-lg transition bg-white group block h-full flex flex-col"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition">
+                    {job.title}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">{job.department}</p>
+                </div>
+                <span className="bg-indigo-50 text-indigo-700 text-xs px-2 py-1 rounded font-medium h-fit">
+                  {job.type}
+                </span>
+              </div>
+              
+              <p className="text-gray-600 text-sm mb-6 line-clamp-2 flex-grow">
+                {job.description}
+              </p>
+              
+              <div className="flex items-center gap-4 text-xs text-gray-500 mt-auto pt-4 border-t border-gray-50">
+                <div className="flex items-center gap-1"><MapPin className="w-3 h-3"/> {job.location}</div>
+                <div className="flex items-center gap-1"><Clock className="w-3 h-3"/> Active Now</div>
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}
+
+====================
+FILE PATH: .\src\components\dashboard\DashboardClient.tsx
+====================
+
+"use client"
+
+import { useState } from "react"
+import { addAddress, addPaymentMethod } from "@/app/actions/user"
+
+interface DashboardClientProps {
+  user: any
+}
+
+export function DashboardClient({ user }: DashboardClientProps) {
+  const [activeTab, setActiveTab] = useState("overview")
+  const [loading, setLoading] = useState(false)
+
+  // Simple form handler helper
+  async function handleForm(action: any, formData: FormData) {
+    setLoading(true)
+    await action(formData)
+    setLoading(false)
+    // In a real app, you would show a success toast here
+    alert("Saved successfully!")
+  }
+
+  return (
+    <div className="flex flex-col md:flex-row gap-8">
+      {/* SIDEBAR NAVIGATION */}
+      <aside className="w-full md:w-64 space-y-2">
+        <button
+          onClick={() => setActiveTab("overview")}
+          className={`w-full text-left px-4 py-2 rounded-lg ${
+            activeTab === "overview" ? "bg-black text-white" : "hover:bg-gray-100"
+          }`}
+        >
+          Overview
+        </button>
+        <button
+          onClick={() => setActiveTab("orders")}
+          className={`w-full text-left px-4 py-2 rounded-lg ${
+            activeTab === "orders" ? "bg-black text-white" : "hover:bg-gray-100"
+          }`}
+        >
+          Orders
+        </button>
+        <button
+          onClick={() => setActiveTab("addresses")}
+          className={`w-full text-left px-4 py-2 rounded-lg ${
+            activeTab === "addresses" ? "bg-black text-white" : "hover:bg-gray-100"
+          }`}
+        >
+          Addresses
+        </button>
+        <button
+          onClick={() => setActiveTab("payments")}
+          className={`w-full text-left px-4 py-2 rounded-lg ${
+            activeTab === "payments" ? "bg-black text-white" : "hover:bg-gray-100"
+          }`}
+        >
+          Payment Methods
+        </button>
+      </aside>
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        
+        {/* TAB 1: OVERVIEW */}
+        {activeTab === "overview" && (
+          <div>
+            <h2 className="text-xl font-bold mb-4">Welcome back, {user.name}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 bg-gray-50 rounded border">
+                <p className="text-gray-500 text-sm">Email</p>
+                <p className="font-medium">{user.email}</p>
+              </div>
+              <div className="p-4 bg-gray-50 rounded border">
+                <p className="text-gray-500 text-sm">Account Status</p>
+                <p className="font-medium text-green-600">Active</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: ORDERS */}
+        {activeTab === "orders" && (
+          <div>
+            <h2 className="text-xl font-bold mb-4">Order History</h2>
+            {user.orders.length === 0 ? (
+              <p className="text-gray-500">No orders found.</p>
+            ) : (
+              <div className="space-y-4">
+                {user.orders.map((order: any) => (
+                  <div key={order.id} className="border p-4 rounded-lg flex justify-between items-center">
+                    <div>
+                      <p className="font-bold">Order #{order.id.slice(-6).toUpperCase()}</p>
+                      <p className="text-sm text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold">${order.total}</p>
+                      <span className="text-xs bg-gray-100 px-2 py-1 rounded">{order.status}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 3: ADDRESSES */}
+        {activeTab === "addresses" && (
+          <div>
+            <h2 className="text-xl font-bold mb-6">Manage Addresses</h2>
+            
+            {/* List Existing */}
+            <div className="grid grid-cols-1 gap-4 mb-8">
+              {user.addresses.map((addr: any) => (
+                <div key={addr.id} className="border p-4 rounded relative">
+                  <p className="font-bold">{addr.fullName}</p>
+                  <p className="text-sm text-gray-600">{addr.street}, {addr.city}</p>
+                  <p className="text-sm text-gray-600">{addr.phone}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Add New Form */}
+            <h3 className="font-semibold mb-3">Add New Address</h3>
+            <form action={(fd) => handleForm(addAddress, fd)} className="space-y-3 max-w-md">
+              <input name="fullName" placeholder="Full Name" required className="w-full border p-2 rounded" />
+              <input name="street" placeholder="Street Address" required className="w-full border p-2 rounded" />
+              <div className="flex gap-2">
+                <input name="city" placeholder="City" required className="w-full border p-2 rounded" />
+                <input name="postalCode" placeholder="Postal Code" required className="w-full border p-2 rounded" />
+              </div>
+              <input name="phone" placeholder="Phone Number" required className="w-full border p-2 rounded" />
+              <button disabled={loading} className="bg-black text-white px-4 py-2 rounded w-full">
+                {loading ? "Saving..." : "Save Address"}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* TAB 4: PAYMENT METHODS */}
+        {activeTab === "payments" && (
+          <div>
+            <h2 className="text-xl font-bold mb-6">Payment Methods</h2>
+
+            {/* List Existing */}
+            <div className="grid grid-cols-1 gap-4 mb-8">
+              {user.paymentMethods.length === 0 && <p className="text-gray-500">No cards saved.</p>}
+              {user.paymentMethods.map((pm: any) => (
+                <div key={pm.id} className="border p-4 rounded flex justify-between items-center bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-12 bg-gray-300 rounded"></div> {/* Card Icon Placeholder */}
+                    <div>
+                      <p className="font-bold">{pm.type}</p>
+                      <p className="text-sm text-gray-600">•••• •••• •••• {pm.last4}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm font-mono">{pm.expiry}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Add New Form */}
+            <h3 className="font-semibold mb-3">Add New Card</h3>
+            <form action={(fd) => handleForm(addPaymentMethod, fd)} className="space-y-3 max-w-md p-4 border border-dashed rounded bg-gray-50">
+              <select name="brand" className="w-full border p-2 rounded">
+                <option value="Visa">Visa</option>
+                <option value="MasterCard">MasterCard</option>
+              </select>
+              <input name="cardNumber" placeholder="Card Number" required maxLength={16} className="w-full border p-2 rounded" />
+              <input name="expiry" placeholder="MM/YY" required className="w-full border p-2 rounded" />
+              <button disabled={loading} className="bg-black text-white px-4 py-2 rounded w-full">
+                {loading ? "Saving..." : "Save Card"}
+              </button>
+            </form>
+          </div>
+        )}
+
+      </div>
+    </div>
+  )
+}
+
+====================
 FILE PATH: .\src\components\home\CategoryGrid.tsx
 ====================
 
@@ -12955,7 +14447,7 @@ import { Facebook, Twitter, Instagram, Linkedin, Mail, MapPin, Phone } from "luc
 
 export function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300 pt-16 pb-8 border-t border-gray-800 mt-auto">
+    <footer className="bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 pt-16 pb-8 border-t border-zinc-200 dark:border-zinc-800 mt-auto transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Top Section: Grid */}
@@ -12963,86 +14455,88 @@ export function Footer() {
           
           {/* Column 1: Company Info */}
           <div>
-            <h3 className="text-white text-lg font-bold mb-4">E-Com Platform</h3>
-            <p className="text-sm leading-relaxed mb-6 text-gray-400">
-              Your one-stop destination for premium tech, fashion, and lifestyle products. Quality guaranteed.
+            <h3 className="text-zinc-900 dark:text-zinc-50 text-lg font-bold mb-4">E-Com Platform</h3>
+            <p className="text-sm leading-relaxed mb-6">
+              Your one-stop destination for premium tech, fashion, and lifestyle products.
             </p>
             <div className="space-y-3">
+              {/* ADDRESS */}
               <div className="flex items-center gap-3 text-sm">
-                <MapPin className="w-4 h-4 text-indigo-400" />
+                <MapPin className="w-4 h-4 text-zinc-900 dark:text-white" />
                 <span>123 Commerce St, Tech City, USA</span>
               </div>
+              
+              {/* PHONE */}
               <div className="flex items-center gap-3 text-sm">
-                <Phone className="w-4 h-4 text-indigo-400" />
+                <Phone className="w-4 h-4 text-zinc-900 dark:text-white" />
                 <span>+1 (555) 123-4567</span>
               </div>
+              
+              {/* EMAIL */}
               <div className="flex items-center gap-3 text-sm">
-                <Mail className="w-4 h-4 text-indigo-400" />
-                <span>support@ecomplatform.com</span>
+                <Mail className="w-4 h-4 text-zinc-900 dark:text-white" />
+                <Link 
+                  href="/contact" 
+                  className="hover:text-zinc-900 dark:hover:text-white transition-colors"
+                >
+                  support@ecomplatform.com
+                </Link>
               </div>
             </div>
           </div>
 
           {/* Column 2: Quick Links */}
           <div>
-            <h3 className="text-white text-lg font-bold mb-4">Company</h3>
+            <h3 className="text-zinc-900 dark:text-zinc-50 text-lg font-bold mb-4">Company</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="#" className="hover:text-indigo-400 transition">About Us</Link></li>
-              <li><Link href="#" className="hover:text-indigo-400 transition">Careers</Link></li>
-              <li><Link href="#" className="hover:text-indigo-400 transition">Store Locations</Link></li>
-              <li><Link href="#" className="hover:text-indigo-400 transition">Privacy Policy</Link></li>
-              <li><Link href="#" className="hover:text-indigo-400 transition">Terms of Service</Link></li>
+              <li><Link href="/about" className="hover:text-zinc-900 dark:hover:text-white transition-colors">About Us</Link></li>
+              <li><Link href="/careers" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Careers</Link></li>
+              <li><Link href="/contact" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Store Locations</Link></li>
+              <li><Link href="/privacy" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Privacy Policy</Link></li>
             </ul>
           </div>
-
+          
           {/* Column 3: Shop Categories */}
-          <div>
-            <h3 className="text-white text-lg font-bold mb-4">Shop</h3>
+           <div>
+            <h3 className="text-zinc-900 dark:text-zinc-50 text-lg font-bold mb-4">Shop</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/search?q=Electronics" className="hover:text-indigo-400 transition">Electronics</Link></li>
-              <li><Link href="/search?q=Clothing" className="hover:text-indigo-400 transition">Clothing & Fashion</Link></li>
-              <li><Link href="/search?q=Home" className="hover:text-indigo-400 transition">Home & Garden</Link></li>
-              <li><Link href="/search?q=Sports" className="hover:text-indigo-400 transition">Sports & Outdoors</Link></li>
-              <li><Link href="/search?q=Books" className="hover:text-indigo-400 transition">Books & Media</Link></li>
+              <li><Link href="/search?q=Electronics" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Electronics</Link></li>
+              <li><Link href="/search?q=Clothing" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Clothing</Link></li>
+              <li><Link href="/search?q=Home" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Home & Garden</Link></li>
             </ul>
           </div>
 
           {/* Column 4: Services & Social */}
           <div>
-            <h3 className="text-white text-lg font-bold mb-4">Services</h3>
+            <h3 className="text-zinc-900 dark:text-zinc-50 text-lg font-bold mb-4">Services</h3>
             <ul className="space-y-2 text-sm mb-6">
-              <li><Link href="#" className="hover:text-indigo-400 transition">Order Tracking</Link></li>
-              <li><Link href="#" className="hover:text-indigo-400 transition">Wishlist</Link></li>
-              <li><Link href="#" className="hover:text-indigo-400 transition">Returns & Refunds</Link></li>
-              <li><Link href="#" className="hover:text-indigo-400 transition">FAQs</Link></li>
+              <li><Link href="/tracking" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Order Tracking</Link></li>
+              <li><Link href="/dashboard" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Wishlist</Link></li>
+              <li><Link href="/contact" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Returns</Link></li>
             </ul>
 
-            <h4 className="text-white text-sm font-bold mb-3">Follow Us</h4>
+            <h4 className="text-zinc-900 dark:text-zinc-50 text-sm font-bold mb-3">Follow Us</h4>
             <div className="flex gap-4">
-              <Link href="#" className="bg-gray-800 p-2 rounded-full hover:bg-indigo-600 hover:text-white transition">
-                <Facebook className="w-4 h-4" />
-              </Link>
-              <Link href="#" className="bg-gray-800 p-2 rounded-full hover:bg-sky-500 hover:text-white transition">
-                <Twitter className="w-4 h-4" />
-              </Link>
-              <Link href="#" className="bg-gray-800 p-2 rounded-full hover:bg-pink-600 hover:text-white transition">
-                <Instagram className="w-4 h-4" />
-              </Link>
-              <Link href="#" className="bg-gray-800 p-2 rounded-full hover:bg-blue-700 hover:text-white transition">
-                <Linkedin className="w-4 h-4" />
-              </Link>
+              {/* Social Icons */}
+              {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
+                <Link 
+                  key={i} 
+                  href="#" 
+                  className="bg-zinc-200 dark:bg-zinc-800 p-2 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-300"
+                >
+                  <Icon className="w-4 h-4" />
+                </Link>
+              ))}
             </div>
           </div>
 
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-800 pt-8 mt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
-          <p>&copy; {new Date().getFullYear()} Modern Ecommerce Platform. All rights reserved.</p>
+        <div className="border-t border-zinc-200 dark:border-zinc-800 pt-8 mt-8 flex flex-col md:flex-row justify-between items-center text-xs text-zinc-500">
+          <p>&copy; {new Date().getFullYear()} Modern Ecommerce Platform.</p>
           <div className="flex gap-4 mt-4 md:mt-0">
-            <span className="hover:text-gray-400 cursor-pointer">Secure Payment</span>
-            <span className="hover:text-gray-400 cursor-pointer">SSL Encrypted</span>
-            <span className="hover:text-gray-400 cursor-pointer">24/7 Support</span>
+             <Link href="/privacy" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Privacy & Terms</Link>
           </div>
         </div>
       </div>
@@ -13054,11 +14548,10 @@ export function Footer() {
 FILE PATH: .\src\components\layout\Navbar.tsx
 ====================
 
-// src/components/layout/Navbar.tsx
 "use client"
 
 import Link from "next/link"
-import { ShoppingCart, User, LogOut, LayoutDashboard } from "lucide-react"
+import { ShoppingCart, User, LogOut, LayoutDashboard, Settings, ShoppingBag } from "lucide-react"
 import { useCart } from "@/context/CartContext"
 import { SearchBar } from "@/components/ui/SearchBar"
 import { useSession, signOut } from "next-auth/react"
@@ -13070,7 +14563,6 @@ export function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -13082,22 +14574,32 @@ export function Navbar() {
   }, [])
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-50 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           
-          <Link href="/" className="flex items-center gap-2">
-            <div className="bg-black text-white p-1.5 rounded-lg font-bold text-xl">E-Com</div>
-            <span className="font-bold text-xl tracking-tight text-gray-900">Platform</span>
+          {/* LOGO [FIXED] */}
+          {/* Now uses text-foreground so it's Black in Light, White in Dark */}
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="p-2 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+              <ShoppingBag className="w-6 h-6 text-primary" />
+            </div>
+            <span className="font-bold text-xl tracking-tight text-foreground">
+              E-Com Platform
+            </span>
           </Link>
 
+          {/* SEARCH BAR */}
           <div className="flex-1 flex justify-center px-2 lg:ml-6 lg:justify-end">
              <SearchBar />
           </div>
 
+          {/* ACTIONS */}
           <div className="flex items-center gap-6">
-            <Link href="/cart" className="relative group p-2 rounded-full hover:bg-gray-100 transition">
-              <ShoppingCart className="w-6 h-6 text-gray-700 group-hover:text-black" />
+            
+            {/* CART ICON [FIXED COLOR] */}
+            <Link href="/cart" className="relative group p-2 rounded-full hover:bg-accent transition-colors">
+              <ShoppingCart className="w-6 h-6 text-foreground/80 group-hover:text-primary transition-colors" />
               {cartCount > 0 && (
                 <span className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
                   {cartCount}
@@ -13105,39 +14607,60 @@ export function Navbar() {
               )}
             </Link>
 
-            {/* USER DROPDOWN LOGIC */}
+            {/* USER DROPDOWN */}
             {session ? (
               <div className="relative" ref={dropdownRef}>
                 <button 
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-2 p-1 pl-2 pr-4 rounded-full border hover:shadow-md transition cursor-pointer"
+                  className="flex items-center gap-2 p-1 pl-2 pr-4 rounded-full border border-border hover:bg-accent hover:text-accent-foreground transition cursor-pointer"
                 >
-                  <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-bold text-sm">
+                  {/* User Avatar */}
+                  <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">
                     {session.user?.name?.[0] || "U"}
                   </div>
-                  <span className="text-sm font-medium max-w-[80px] truncate">{session.user?.name}</span>
+                  <span className="text-sm font-medium max-w-[80px] truncate text-foreground">
+                    {session.user?.name}
+                  </span>
                 </button>
 
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border py-2 animate-in slide-in-from-top-2">
-                    <div className="px-4 py-3 border-b mb-1">
-                      <p className="text-xs text-gray-500">Signed in as</p>
-                      <p className="text-sm font-bold truncate">{session.user?.email}</p>
+                  <div className="absolute right-0 mt-2 w-56 bg-card text-card-foreground rounded-xl shadow-xl border border-border py-2 animate-in slide-in-from-top-2">
+                    <div className="px-4 py-3 border-b border-border mb-1">
+                      <p className="text-xs text-muted-foreground">Signed in as</p>
+                      <p className="text-sm font-bold truncate text-foreground">{session.user?.email}</p>
                     </div>
                     
-                    <Link href="/dashboard" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    <Link 
+                      href="/dashboard" 
+                      onClick={() => setIsDropdownOpen(false)} 
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                    >
                       <LayoutDashboard size={16} /> Dashboard
                     </Link>
                     
-                    {/* Admin Link if role is ADMIN */}
                     {session.user?.role === 'ADMIN' && (
-                        <Link href="/admin" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-indigo-600 font-bold hover:bg-indigo-50">
+                        <Link 
+                          href="/admin" 
+                          onClick={() => setIsDropdownOpen(false)} 
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-primary font-bold hover:bg-primary/10"
+                        >
                           ⚡ Admin Panel
                         </Link>
                     )}
 
-                    <div className="border-t mt-1 pt-1">
-                      <button onClick={() => signOut()} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left">
+                    <Link 
+                      href="/settings" 
+                      onClick={() => setIsDropdownOpen(false)} 
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                    >
+                      <Settings size={16} /> Settings
+                    </Link>
+
+                    <div className="border-t border-border mt-1 pt-1">
+                      <button 
+                        onClick={() => signOut()} 
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 text-left transition-colors"
+                      >
                         <LogOut size={16} /> Sign Out
                       </button>
                     </div>
@@ -13145,7 +14668,10 @@ export function Navbar() {
                 )}
               </div>
             ) : (
-              <Link href="/login" className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition text-gray-700 font-medium">
+              <Link 
+                href="/login" 
+                className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent text-foreground hover:text-primary transition font-medium"
+              >
                 <User className="w-5 h-5" />
                 <span className="hidden sm:inline">Login</span>
               </Link>
@@ -13163,10 +14689,29 @@ FILE PATH: .\src\components\layout\TickerBar.tsx
 
 export function TickerBar() {
   return (
-    <div className="bg-black overflow-hidden h-8 flex items-center border-b border-gray-800">
-      <div className="whitespace-nowrap w-full">
-        <div className="animate-marquee inline-block text-xs font-bold tracking-widest text-white text-glow uppercase px-4">
-          ⚡ Flash Sale: Get 20% Off All Electronics • Free Shipping on Orders Over $200 • New Arrivals In Stock • Shop Now & Save ⚡
+    <div className="relative overflow-hidden h-9 flex items-center z-40">
+      {/* RGB Gradient Background 
+        - Works in both themes but pops differently.
+        - 'via-fuchsia-600' adds that neon pink RGB look in the middle.
+      */}
+      <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-blue-600 dark:from-violet-800 dark:via-fuchsia-800 dark:to-blue-800 opacity-95" />
+      
+      {/* Optional: Bottom Glow Line for Dark Mode 
+        - Adds a cyber/neon under-glow effect
+      */}
+      <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-0 dark:opacity-100" />
+
+      <div className="whitespace-nowrap w-full relative z-10">
+        <div className="animate-marquee inline-block text-xs font-extrabold tracking-[0.2em] text-white uppercase px-4 drop-shadow-md">
+          <span className="text-yellow-300 mx-2">⚡</span> 
+          Flash Sale: Get 20% Off All Electronics 
+          <span className="mx-4 text-white/50">•</span> 
+          Free Shipping on Orders Over $200 
+          <span className="mx-4 text-white/50">•</span> 
+          New Arrivals In Stock 
+          <span className="mx-4 text-white/50">•</span> 
+          Shop Now & Save 
+          <span className="text-yellow-300 mx-2">⚡</span>
         </div>
       </div>
     </div>
@@ -13356,13 +14901,13 @@ export async function ReviewList({ productId }: { productId: string }) {
 FILE PATH: .\src\components\providers\NextAuthProvider.tsx
 ====================
 
-"use client"
+"use client";
 
-import { SessionProvider } from "next-auth/react"
+import { SessionProvider } from "next-auth/react";
 
 export const NextAuthProvider = ({ children }: { children: React.ReactNode }) => {
-  return <SessionProvider>{children}</SessionProvider>
-}
+  return <SessionProvider>{children}</SessionProvider>;
+};
 
 ====================
 FILE PATH: .\src\components\ui\AddToCartButton.tsx
@@ -13755,6 +15300,71 @@ export function useCart() {
 }
 
 ====================
+FILE PATH: .\src\lib\format.ts
+====================
+
+export function formatPrice(amount: number | string) {
+  const price = Number(amount)
+  return `Rs. ${price.toLocaleString('en-PK')}`
+}
+
+====================
+FILE PATH: .\src\lib\jobData.ts
+====================
+
+export const JOBS = [
+  { 
+    id: "frontend-engineer", 
+    title: "Senior Frontend Engineer", 
+    dept: "Engineering", 
+    type: "Full-time", 
+    location: "Remote", 
+    salary: "$90k - $120k",
+    description: "We are looking for an expert in React and Next.js to lead our storefront team. You will be responsible for architecting the frontend of our high-traffic e-commerce platform.",
+    requirements: [
+      "5+ years experience with React and TypeScript",
+      "Deep understanding of Next.js App Router",
+      "Experience with Tailwind CSS",
+      "Strong communication skills"
+    ]
+  },
+  { 
+    id: "product-designer", 
+    title: "Product Designer", 
+    dept: "Design", 
+    type: "Full-time", 
+    location: "New York, USA", 
+    salary: "$85k - $110k",
+    description: "Design beautiful, intuitive interfaces for our millions of users. You will work closely with product managers and engineers to deliver seamless UX.",
+    requirements: [
+      "Portfolio demonstrating UI/UX skills",
+      "Proficiency in Figma",
+      "Experience in e-commerce design",
+      "User research experience"
+    ]
+  },
+  { 
+    id: "marketing-manager", 
+    title: "Marketing Manager", 
+    dept: "Marketing", 
+    type: "Full-time", 
+    location: "London, UK", 
+    salary: "£60k - £80k",
+    description: "Lead our global campaigns and brand strategy. We need someone who can tell compelling stories and drive user acquisition.",
+    requirements: [
+      "Experience in digital marketing",
+      "SEO and Content Marketing knowledge",
+      "Data-driven mindset",
+      "Leadership experience"
+    ]
+  },
+]
+
+export function getJobById(id: string) {
+  return JOBS.find(job => job.id === id)
+}
+
+====================
 FILE PATH: .\src\lib\payment-utils.ts
 ====================
 
@@ -13868,61 +15478,44 @@ import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
 
 // --- ORDER ACTIONS ---
-
 export async function updateOrderStatus(orderId: string, newStatus: string) {
-  console.log(`📦 Updating Order ${orderId} to ${newStatus}`)
-  
   await prisma.order.update({
     where: { id: orderId },
-    data: { status: newStatus }
+    data: { status: newStatus as any } // Cast to any to avoid Enum strictness issues during dev
   })
-
-  // Refresh the UI automatically
   revalidatePath('/admin/orders')
-  revalidatePath('/admin')
 }
 
 // --- PRODUCT ACTIONS ---
 
-// 1. Create a New Product (Updated with Inventory Fields)
+// 1. Create a New Product
 export async function createProduct(formData: FormData) {
   const name = formData.get("name") as string
   const price = parseFloat(formData.get("price") as string)
   const category = formData.get("category") as string
   const stock = parseInt(formData.get("stock") as string)
   const description = formData.get("description") as string
-  
-  // New Inventory Fields
   const vendor = formData.get("vendor") as string
   const barcode = formData.get("barcode") as string
   const origin = formData.get("origin") as string
   const expiryRaw = formData.get("expiryDate") as string
   
-  // A. Handle the Image File
+  // Handle Image Upload
   const file: File | null = formData.get('image') as unknown as File
-  let imageUrl = "/images/placeholder.jpg" // Default fallback
+  let imagePath = ""
 
   if (file && file.size > 0) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
-    
-    // Create unique filename
-    const cleanName = file.name.replace(/\s+/g, '-').toLowerCase()
-    const filename = `${Date.now()}-${cleanName}`
-    
+    const filename = `${Date.now()}-${file.name.replace(/\s+/g, '-').toLowerCase()}`
     const uploadDir = join(process.cwd(), "public", "products")
-    const finalPath = join(uploadDir, filename)
-
-    try {
-      await mkdir(uploadDir, { recursive: true })
-      await writeFile(finalPath, buffer)
-      imageUrl = `/products/${filename}`
-    } catch (e) {
-      console.error("Image Upload Failed:", e)
-    }
+    
+    await mkdir(uploadDir, { recursive: true })
+    await writeFile(join(uploadDir, filename), buffer)
+    imagePath = `/products/${filename}`
   }
 
-  // B. Save to Database
+  // Save to DB (Corrected for new Schema)
   await prisma.product.create({
     data: {
       name,
@@ -13930,21 +15523,22 @@ export async function createProduct(formData: FormData) {
       category,
       stock,
       description,
-      imageUrl,
-      // Add new fields
       vendor,
       barcode,
       origin: origin || "Local",
-      expiryDate: expiryRaw ? new Date(expiryRaw) : null
+      expiryDate: expiryRaw ? new Date(expiryRaw) : null,
+      // [FIX] Save image to the new relation
+      images: imagePath ? {
+        create: [{ url: imagePath, altText: name }]
+      } : undefined
     }
   })
 
   revalidatePath('/admin/products')
-  revalidatePath('/admin/inventory')
   redirect('/admin/products')
 }
 
-// 2. Update Existing Product (NEW FUNCTION)
+// 2. Update Product
 export async function updateProduct(formData: FormData) {
   const id = formData.get("id") as string
   const name = formData.get("name") as string
@@ -13952,63 +15546,46 @@ export async function updateProduct(formData: FormData) {
   const category = formData.get("category") as string
   const stock = parseInt(formData.get("stock") as string)
   const description = formData.get("description") as string
-  
-  // New Inventory Fields
   const vendor = formData.get("vendor") as string
   const barcode = formData.get("barcode") as string
-  const origin = formData.get("origin") as string
-  const expiryRaw = formData.get("expiryDate") as string
-
-  // Handle Image Update (Only if a new file is uploaded)
+  
+  // Handle Image Update
   const file: File | null = formData.get('image') as unknown as File
-  let imageUrl = undefined 
+  
+  await prisma.product.update({
+    where: { id },
+    data: {
+      name, price, category, stock, description, vendor, barcode,
+    }
+  })
 
+  // [FIX] If new image, add it to the relation
   if (file && file.size > 0) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     const filename = `${Date.now()}-${file.name.replace(/\s+/g, '-').toLowerCase()}`
     const uploadDir = join(process.cwd(), "public", "products")
-    const finalPath = join(uploadDir, filename)
     
-    try {
-      await mkdir(uploadDir, { recursive: true })
-      await writeFile(finalPath, buffer)
-      imageUrl = `/products/${filename}`
-    } catch (e) {
-      console.error("Image update failed", e)
-    }
+    await mkdir(uploadDir, { recursive: true })
+    await writeFile(join(uploadDir, filename), buffer)
+
+    // Create the new image entry
+    await prisma.productImage.create({
+      data: {
+        url: `/products/${filename}`,
+        altText: name,
+        productId: id
+      }
+    })
   }
 
-  // Update Database
-  await prisma.product.update({
-    where: { id },
-    data: {
-      name,
-      price,
-      category,
-      stock,
-      description,
-      vendor,
-      barcode,
-      origin,
-      expiryDate: expiryRaw ? new Date(expiryRaw) : null,
-      ...(imageUrl && { imageUrl }) // Only update image path if changed
-    }
-  })
-
   revalidatePath('/admin/products')
-  revalidatePath('/admin/inventory')
   redirect('/admin/products')
 }
 
-// 3. Delete a Product
 export async function deleteProduct(productId: string) {
-  await prisma.product.delete({
-    where: { id: productId }
-  })
-
+  await prisma.product.delete({ where: { id: productId } })
   revalidatePath('/admin/products')
-  revalidatePath('/admin/inventory')
 }
 
 ====================
@@ -14103,25 +15680,43 @@ export async function reorderStock(productId: string, vendor: string) {
 FILE PATH: .\src\modules\products\product.service.ts
 ====================
 
-// src/modules/products/product.service.ts
 import { prisma } from "@/lib/prisma"
 
-// Function 1: Get all products (Simulating a "Featured" section)
-export async function getFeaturedProducts() {
-  const products = await prisma.product.findMany({
-    take: 8, // Let's just grab the first 8 for the homepage
-    orderBy: {
-      createdAt: 'desc' // Newest first
-    }
-  })
-  return products
+// Helper to convert Decimal to Number for the frontend
+const serializeProduct = (product: any) => {
+  return {
+    ...product,
+    price: Number(product.price), // [CRITICAL FIX] Converts Decimal -> Number
+    imageUrl: product.images?.[0]?.url || '/placeholder.jpg',
+    images: product.images || []
+  }
 }
 
-// Function 2: Get a single product by ID (We'll use this later)
-export async function getProductById(id: string) {
-  return await prisma.product.findUnique({
-    where: { id }
+// Function 1: Get Featured Products (Used on Home Page)
+export async function getFeaturedProducts() {
+  const products = await prisma.product.findMany({
+    take: 8,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      images: { take: 1 }
+    }
   })
+
+  return products.map(serializeProduct)
+}
+
+// Function 2: Get a single product by ID (Used on Detail Page)
+export async function getProductById(id: string) {
+  const product = await prisma.product.findUnique({
+    where: { id },
+    include: {
+      images: true // Fetch all images for gallery
+    }
+  })
+
+  if (!product) return null
+
+  return serializeProduct(product)
 }
 
 ====================

@@ -7,11 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- ENUMS (STRICT TYPING) ---
+// --- ENUMS ---
+
 enum Role {
   CUSTOMER
   ADMIN
-  SUPPORT // Optional: good for future team expansion
+  SUPPORT
 }
 
 enum OrderStatus {
@@ -23,103 +24,113 @@ enum OrderStatus {
   RETURNED
 }
 
-enum PaymentMethod {
+enum PaymentType {
   JAZZCASH
   EASYPAISA
   COD
   CARD
 }
 
-// --- USER MANAGEMENT & AUTH ---
+// --- USER MANAGEMENT ---
+
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String   // Store Hashed Passwords only!
-  name      String?
-  role      Role     @default(CUSTOMER) 
+  id             String    @id @default(uuid())
+  email          String    @unique
+  password       String
+  name           String?
+  role           Role      @default(CUSTOMER)
   
-  // Auth & Security Fields
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   
-  // Password Reset Logic
-  resetToken       String?
+  // --- NEW SECURITY FIELDS ---
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String? // Stores the secret key for Google Authenticator
+  
+  resetToken     String?
   resetTokenExpiry DateTime?
 
   // Relations
-  orders    Order[]
-  wishlist  WishlistItem[] 
-  reviews   Review[]
-  addresses Address[] 
+  orders         Order[]
+  wishlist       WishlistItem[] 
+  reviews        Review[]
+  addresses      Address[]
+  paymentMethods PaymentMethod[] 
 }
 
-// --- PRODUCT CATALOG & INVENTORY ---
+// --- PRODUCT CATALOG ---
+
 model Product {
   id          String   @id @default(uuid())
   name        String
   description String
-  price       Decimal
+  price       Decimal  @default(0)
   stock       Int
   category    String
   
-  // [NEW] Supports Multiple Images
-  images      ProductImage[] 
+  // Inventory Fields
+  sku         String?  @unique // Stock Keeping Unit
+  brand       String?
+  barcode     String?  // UPC / EAN
+  qrCode      String?  // Internal QR ID
+  costPrice   Decimal? @default(0)
+  taxRate     Float?   @default(0)
+  minStock    Int      @default(10) 
+  unit        String?  @default("pcs")
+  tags        String?  
+  
+  vendor      String?
+  origin      String   @default("Local") 
+  expiryDate  DateTime?
 
-  // Advanced Inventory Fields
+  images      ProductImage[] 
+  orderItems  OrderItem[] 
+  wishlistedBy WishlistItem[]
+  reviews     Review[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt        
-  barcode     String?  @unique          
-  expiryDate  DateTime?                 
-  vendor      String?                   
-  origin      String   @default("Local") 
-
-  // Relations
-  orderItems   OrderItem[] 
-  wishlistedBy WishlistItem[]
-  reviews      Review[]
 }
 
 model ProductImage {
   id        String   @id @default(uuid())
   url       String
-  altText   String?  // Good for SEO
+  altText   String?
   productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 // --- ORDER SYSTEM ---
-model Order {
-  id             String   @id @default(uuid())
-  
-  // User Link (Optional for Guest Checkout)
-  userId         String?
-  user           User?    @relation(fields: [userId], references: [id])
-  
-  // Snapshot of Shipping Details (Immutable after order)
-  guestName      String
-  guestEmail     String   @default("guest@example.com")
-  address        String
-  city           String
-  postalCode     String
-  phone          String
-  
-  // Payment & Status
-  status         OrderStatus   @default(PENDING)
-  totalAmount    Decimal
-  
-  // Payment Details
-  paymentMethod  PaymentMethod 
-  paymentPhone   String?  
-  transactionId  String?  
-  isPaid         Boolean  @default(false)
-  
-  // [NEW] Coupon Linking
-  couponId       String?
-  coupon         Coupon?  @relation(fields: [couponId], references: [id])
 
-  items          OrderItem[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+model Order {
+  id              String        @id @default(uuid())
+  
+  userId          String?
+  user            User?         @relation(fields: [userId], references: [id])
+  
+  // Shipping Details
+  guestName       String
+  guestEmail      String       
+  address         String
+  city            String
+  postalCode      String
+  phone           String
+  
+  status          OrderStatus   @default(PENDING)
+  totalAmount     Decimal
+  
+  paymentMethod   PaymentType 
+  paymentPhone    String?    
+  transactionId   String?    
+  isPaid          Boolean       @default(false)
+  
+  // Coupon Relation
+  couponId        String?
+  coupon          Coupon?       @relation(fields: [couponId], references: [id])
+
+  items           OrderItem[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model OrderItem {
@@ -130,10 +141,11 @@ model OrderItem {
   product   Product @relation(fields: [productId], references: [id])
   
   quantity  Int
-  price     Decimal // Snapshot of price at purchase time
+  price     Decimal
 }
 
 // --- USER DASHBOARD ---
+
 model Address {
   id         String   @id @default(uuid())
   userId     String
@@ -148,7 +160,18 @@ model Address {
   isDefault  Boolean  @default(false)
 }
 
+model PaymentMethod {
+  id         String   @id @default(uuid())
+  type       String   
+  last4      String   
+  expiry     String   
+  
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 // --- MARKETING & REVIEWS ---
+
 model WishlistItem {
   id        String   @id @default(uuid())
   userId    String
@@ -165,6 +188,7 @@ model Review {
   rating    Int      
   comment   String?  
   
+  images    String[] // Stores URLs of uploaded images
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   productId String
@@ -173,13 +197,43 @@ model Review {
   createdAt DateTime @default(now())
 }
 
+// --- COUPON SYSTEM (Fixed & Merged) ---
+
 model Coupon {
-  id        String    @id @default(uuid())
-  code      String    @unique
-  discount  Int       // Percentage
-  isActive  Boolean   @default(true)
-  expiresAt DateTime?
+  id          String    @id @default(uuid())
+  code        String    @unique
+  discount    Float     // Supports 10.5 or 50.00
+  type        String    @default("PERCENT") // Options: "PERCENT" or "FIXED"
+  minAmount   Float     @default(0)         // Min cart total required
+  isActive    Boolean   @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  orders      Order[]   
+}
+
+// --- CAREERS / JOBS (Updated for Advanced Form) ---
+
+model Job {
+  id              String    @id @default(uuid())
+  title           String
+  department      String    
+  type            String    
+  location        String    
+  salary          String    
+  description     String
+  requirements    String    // Stored as JSON String
   
-  // [NEW] Track usage history
-  orders    Order[]   
+  // Advanced Fields
+  experienceLevel String?   
+  workplaceType   String?   
+  contactEmail    String?
+  deadline        DateTime?
+  skills          String?   // Stored as JSON String (Tags)
+
+  isActive        Boolean   @default(true)
+  featured        Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }

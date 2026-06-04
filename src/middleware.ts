@@ -1,25 +1,32 @@
-// src/middleware.ts
 import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
 
 export default withAuth(
   function middleware(req) {
-    // This function only runs if the user is already logged in.
-    // Here we check their ROLE.
-    
+    // 1. ADMIN PROTECTION
+    // If trying to access /admin AND not an ADMIN role -> Redirect to Home
     if (req.nextUrl.pathname.startsWith("/admin") && req.nextauth.token?.role !== "ADMIN") {
-      // If they try to access /admin but aren't an ADMIN, kick them out.
       return NextResponse.redirect(new URL("/", req.url))
     }
+
+    // 2. USER PROTECTION (Optional but recommended)
+    // You can add extra logic here if needed, but the 'authorized' callback 
+    // below already handles the basic "must be logged in" check for all matched routes.
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token // Ensure user is logged in
+      authorized: ({ token }) => !!token // Returns true if logged in, false if not
     },
   }
 )
 
-// Define which pages to protect
 export const config = {
-  matcher: ["/admin/:path*"]
+  // ✅ UPDATE: Protect User routes too (Checkout, Orders, Profile)
+  matcher: [
+    "/admin/:path*",      // Requires Login + ADMIN Role
+    "/checkout/:path*",   // Requires Login
+    "/orders/:path*",     // Requires Login
+    "/profile/:path*",    // Requires Login
+    "/dashboard/:path*"   // Requires Login
+  ]
 }
