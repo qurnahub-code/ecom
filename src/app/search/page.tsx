@@ -1,123 +1,214 @@
-'use client';
-import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { searchProducts } from '@/app/actions'; 
-import { ProductCard } from '@/components/products/ProductCard'; // [NEW] Use the shared card
-import { 
-  Search, Camera, Image as ImageIcon, SlidersHorizontal, 
-  X, Star, Grid, List, HelpCircle, QrCode, RefreshCcw, 
-  Loader2
-} from 'lucide-react';
+import { Metadata } from "next"
+import Link from "next/link"
+import { Search, Filter, ArrowLeft, ArrowRight, SlidersHorizontal, X } from "lucide-react"
+import { ProductCard } from "@/components/products/ProductCard"
 
-export default function SearchPage() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const initialQuery = searchParams.get('q') || '';
+export const metadata: Metadata = {
+  title: "Search Products | Majestic Inc.",
+  description: "Explore our premium collection.",
+}
 
-  const [products, setProducts] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [query, setQuery] = useState(initialQuery);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isImageSearchOpen, setIsImageSearchOpen] = useState(false);
+// Types
+interface Product {
+  id: string
+  name: string
+  description: string
+  price: number | string
+  images: { url: string }[]
+  category: string
+  rating?: number
+}
+
+interface SearchResponse {
+  data: Product[]
+  meta: {
+    total: number
+    page: number
+    limit: number
+    totalPages: number
+  }
+}
+
+// Fetch Logic
+async function getProducts(searchParams: any): Promise<SearchResponse> {
+  const params = new URLSearchParams()
+  if (searchParams?.q) params.set("q", searchParams.q as string)
+  if (searchParams?.category) params.set("category", searchParams.category as string)
+  if (searchParams?.minPrice) params.set("minPrice", searchParams.minPrice as string)
+  if (searchParams?.maxPrice) params.set("maxPrice", searchParams.maxPrice as string)
+  if (searchParams?.sort) params.set("sort", searchParams.sort as string)
+  if (searchParams?.page) params.set("page", searchParams.page as string)
+
+  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+  const res = await fetch(`${baseUrl}/api/search?${params.toString()}`, { cache: "no-store" })
+
+  if (!res.ok) throw new Error("Failed to fetch products")
+  return res.json()
+}
+
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
+
+export default async function SearchPage(props: { searchParams: SearchParams }) {
+  const searchParams = await props.searchParams
+  let response: SearchResponse
   
-  const [activeSort, setActiveSort] = useState('Best Match'); 
-  const [activeTab, setActiveTab] = useState('price'); 
-  const [priceRange, setPriceRange] = useState([0, 2000]);
-  const [minRating, setMinRating] = useState<number | null>(null);
-  const [layout, setLayout] = useState<'grid' | 'list'>('grid'); // Typed for component
+  try {
+    response = await getProducts(searchParams)
+  } catch (error) {
+    console.error("Search Error:", error)
+    response = { data: [], meta: { total: 0, page: 1, limit: 12, totalPages: 0 } }
+  }
 
-  // Camera States
-  const [cameraActive, setCameraActive] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Sync Query
-  useEffect(() => { setQuery(searchParams.get('q') || ''); }, [searchParams]);
-
-  // Fetch Data
-  useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true);
-      try {
-        let sortParam = activeSort === 'Price' ? 'Price Low-High' : activeSort;
-        const data = await searchProducts({ query, minPrice: priceRange[0], maxPrice: priceRange[1], sort: sortParam });
-        setProducts(minRating ? data.filter((p: any) => p.rating >= minRating) : data);
-      } catch (error) { console.error(error); } 
-      finally { setIsLoading(false); }
-    }
-    const t = setTimeout(fetchData, 500);
-    return () => clearTimeout(t);
-  }, [query, priceRange, minRating, activeSort]);
-
-  // --- CAMERA HANDLERS (Simplified for brevity) ---
-  const startCamera = async () => { /* ... same as before ... */ };
-  const stopCamera = () => { /* ... same as before ... */ };
-  const toggleImageSearch = () => { setIsImageSearchOpen(!isImageSearchOpen); };
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => { /* ... same as before ... */ };
+  const { data: products, meta } = response
+  const currentCategory = (searchParams.category as string) || "All"
+  const currentSort = (searchParams.sort as string) || "newest"
+  const currentQ = (searchParams.q as string) || ""
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <div className="bg-white sticky top-0 z-20 shadow-sm px-4 py-4">
-        <div className="max-w-7xl mx-auto">
-          <form onSubmit={(e) => { e.preventDefault(); router.push(`/search?q=${query}`); }} className="relative flex items-center mb-4">
-            <Search className="absolute left-4 text-gray-400" size={20} />
-            <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search..." className="w-full bg-gray-100 rounded-full py-3 pl-12 pr-14 text-sm outline-none focus:ring-2 focus:ring-black/5" />
-            <button type="button" onClick={() => setIsImageSearchOpen(true)} className="absolute right-3 p-2 bg-white rounded-full text-gray-500 hover:text-indigo-600"><Camera size={18} /></button>
-          </form>
-          {/* Filters Bar */}
-          <div className="flex flex-col sm:flex-row justify-between gap-4">
-             <div className="flex bg-gray-100 rounded-lg p-1 overflow-x-auto no-scrollbar w-full sm:w-auto">
-               {['Best Match', 'Newest', 'Price'].map(s => <button key={s} onClick={() => setActiveSort(s)} className={`px-4 py-1.5 text-xs font-semibold rounded-md ${activeSort === s ? 'bg-white shadow text-black' : 'text-gray-500'}`}>{s}</button>)}
-             </div>
-             <div className="flex gap-2 w-full sm:w-auto justify-end">
-               <button onClick={() => setIsFilterOpen(true)} className="flex items-center gap-1.5 px-4 py-2 bg-black text-white rounded-full text-xs font-bold"><SlidersHorizontal size={14}/> Filters</button>
-             </div>
-          </div>
+    <div className="relative min-h-screen bg-gray-50 dark:bg-zinc-950 text-foreground transition-colors duration-300 font-sans">
+      
+      {/* --- ANIMATED BACKGROUND --- */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none z-0 fixed">
+         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-[0.03] dark:opacity-[0.05]"></div>
+         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] bg-indigo-200/40 dark:bg-indigo-900/20 animate-pulse" />
+         <div className="absolute bottom-[20%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] bg-purple-200/40 dark:bg-purple-900/20 animate-pulse delay-1000" />
+      </div>
+
+      <div className="relative z-10 container mx-auto px-4 py-8">
+        
+        {/* --- MOBILE SEARCH BAR (Visible on small screens) --- */}
+        <div className="lg:hidden mb-6">
+           <form action="/search" className="relative group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input 
+                name="q"
+                defaultValue={currentQ}
+                placeholder="Search specifically..."
+                className="w-full bg-white dark:bg-zinc-900/80 border border-gray-200 dark:border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all backdrop-blur-md"
+              />
+           </form>
         </div>
-      </div>
 
-      {/* Results */}
-      <div className="max-w-7xl mx-auto p-4 sm:p-6">
-        {isLoading ? <div className="flex justify-center py-32"><Loader2 className="animate-spin text-gray-400 w-10 h-10"/></div> : (
-          <>
-            <div className="flex justify-between items-center mb-4">
-              <p className="text-sm text-gray-500"><b>{products.length}</b> results</p>
-              <div className="hidden sm:flex bg-white border rounded-lg p-1">
-                 <button onClick={() => setLayout('grid')} className={`p-1.5 rounded ${layout === 'grid' ? 'bg-gray-100 text-black' : 'text-gray-400'}`}><Grid size={18}/></button>
-                 <button onClick={() => setLayout('list')} className={`p-1.5 rounded ${layout === 'list' ? 'bg-gray-100 text-black' : 'text-gray-400'}`}><List size={18}/></button>
-              </div>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          
+          {/* --- SIDEBAR FILTERS --- */}
+          <aside className="hidden lg:block space-y-8 sticky top-24 h-fit p-6 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xl border border-gray-200 dark:border-white/5 rounded-3xl">
+             <div className="flex items-center justify-between mb-2">
+                <h3 className="font-bold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-indigo-500" /> Filters
+                </h3>
+                {(currentCategory !== 'All' || currentQ) && (
+                   <Link href="/search" className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1 font-bold">
+                      <X className="w-3 h-3" /> Clear
+                   </Link>
+                )}
+             </div>
+
+             {/* Categories */}
+             <div className="space-y-3">
+               <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Category</p>
+               <div className="flex flex-col gap-1">
+                 {['All', 'Electronics', 'Fashion', 'Home', 'Accessories'].map((cat) => (
+                   <Link 
+                     key={cat}
+                     href={`/search?q=${currentQ}&category=${cat === 'All' ? '' : cat}`}
+                     className={`text-sm px-3 py-2 rounded-lg transition-all flex justify-between items-center ${
+                       (cat === 'All' && !searchParams.category) || currentCategory === cat
+                         ? "bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-500/20" 
+                         : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5"
+                     }`}
+                   >
+                     {cat}
+                     {/* You could add counts here if available from API */}
+                   </Link>
+                 ))}
+               </div>
+             </div>
+
+             {/* Price Range */}
+             <div className="space-y-3">
+               <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Price</p>
+               <div className="grid grid-cols-2 gap-2">
+                  <Link href={`/search?q=${currentQ}&maxPrice=50`} className="text-xs border border-gray-200 dark:border-white/10 rounded-lg p-2 text-center hover:border-indigo-500 hover:text-indigo-500 transition-all bg-white dark:bg-zinc-800">Under $50</Link>
+                  <Link href={`/search?q=${currentQ}&minPrice=50&maxPrice=100`} className="text-xs border border-gray-200 dark:border-white/10 rounded-lg p-2 text-center hover:border-indigo-500 hover:text-indigo-500 transition-all bg-white dark:bg-zinc-800">$50 - $100</Link>
+                  <Link href={`/search?q=${currentQ}&minPrice=100&maxPrice=500`} className="text-xs border border-gray-200 dark:border-white/10 rounded-lg p-2 text-center hover:border-indigo-500 hover:text-indigo-500 transition-all bg-white dark:bg-zinc-800">$100 - $500</Link>
+                  <Link href={`/search?q=${currentQ}&minPrice=500`} className="text-xs border border-gray-200 dark:border-white/10 rounded-lg p-2 text-center hover:border-indigo-500 hover:text-indigo-500 transition-all bg-white dark:bg-zinc-800">$500+</Link>
+               </div>
+             </div>
+          </aside>
+
+          {/* --- MAIN CONTENT --- */}
+          <main className="lg:col-span-3 space-y-6">
             
-            {products.length === 0 ? (
-                <div className="text-center py-32 text-gray-400">No products found.</div>
-            ) : (
-                // Responsive Grid: 1 col mobile, 2 col sm, 3 col md, 4 col lg
-                <div className={`grid gap-4 ${layout === 'grid' ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1'}`}>
-                  {products.map((product) => (
-                    // [UPDATED] Using the reusable card
-                    <ProductCard key={product.id} product={product} layout={layout} />
-                  ))}
-                </div>
-            )}
-          </>
-        )}
-      </div>
+            {/* Top Toolbar */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md p-4 rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm">
+               <p className="text-sm text-gray-500 dark:text-gray-400">
+                 Showing <span className="font-bold text-gray-900 dark:text-white">{products.length}</span> results
+                 {currentQ && <span> for "<span className="text-indigo-500">{currentQ}</span>"</span>}
+               </p>
 
-      {/* Filter Modal & Image Search Overlay (Existing Code) */}
-      {isFilterOpen && (
-         <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center" onClick={() => setIsFilterOpen(false)}>
-            <div className="bg-white w-full max-w-md p-6 rounded-t-2xl sm:rounded-2xl" onClick={e => e.stopPropagation()}>
-               <div className="flex justify-between mb-4"><h2 className="font-bold">Filters</h2><button onClick={() => setIsFilterOpen(false)}><X/></button></div>
-               {/* Simplified Filter Content */}
-               <div className="space-y-4">
-                  <div><p className="text-sm font-bold mb-2">Price Range</p><div className="flex gap-2"><input type="number" className="border p-2 w-1/2 rounded" value={priceRange[0]} onChange={e => setPriceRange([+e.target.value, priceRange[1]])} /><input type="number" className="border p-2 w-1/2 rounded" value={priceRange[1]} onChange={e => setPriceRange([priceRange[0], +e.target.value])} /></div></div>
-                  <button onClick={() => setIsFilterOpen(false)} className="w-full bg-black text-white py-3 rounded-lg font-bold">Apply</button>
+               <div className="flex items-center gap-3">
+                 <SlidersHorizontal className="w-4 h-4 text-gray-400" />
+                 <div className="flex bg-gray-100 dark:bg-zinc-800 p-1 rounded-lg">
+                    <Link href={`/search?q=${currentQ}&sort=newest`} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${currentSort === 'newest' ? 'bg-white dark:bg-zinc-700 shadow text-indigo-600 dark:text-indigo-400' : 'text-gray-500'}`}>Newest</Link>
+                    <Link href={`/search?q=${currentQ}&sort=price_asc`} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${currentSort === 'price_asc' ? 'bg-white dark:bg-zinc-700 shadow text-indigo-600 dark:text-indigo-400' : 'text-gray-500'}`}>Price ↑</Link>
+                    <Link href={`/search?q=${currentQ}&sort=price_desc`} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${currentSort === 'price_desc' ? 'bg-white dark:bg-zinc-700 shadow text-indigo-600 dark:text-indigo-400' : 'text-gray-500'}`}>Price ↓</Link>
+                 </div>
                </div>
             </div>
-         </div>
-      )}
+
+            {/* Product Grid */}
+            {products.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {products.map((product) => (
+                  <div key={product.id} className="h-full">
+                     <ProductCard 
+                       product={{
+                         ...product,
+                         price: Number(product.price) 
+                       }} 
+                       layout="grid"
+                     />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                <div className="w-24 h-24 bg-gray-100 dark:bg-zinc-900 rounded-full flex items-center justify-center mb-2">
+                  <Search className="w-10 h-10 text-gray-400" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">No products found</h3>
+                <p className="text-gray-500 max-w-sm mx-auto">We couldn't find anything matching your search. Try different keywords or check your spelling.</p>
+                <Link href="/search" className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20">
+                   Clear Filters
+                </Link>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {meta.totalPages > 1 && (
+              <div className="flex justify-center items-center gap-6 pt-10 border-t border-gray-200 dark:border-white/5">
+                <Link 
+                  href={`/search?q=${currentQ}&page=${meta.page - 1}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all ${meta.page <= 1 ? 'pointer-events-none opacity-50 text-gray-400' : 'hover:bg-gray-100 dark:hover:bg-white/10 text-gray-900 dark:text-white'}`}
+                >
+                  <ArrowLeft className="w-4 h-4" /> Previous
+                </Link>
+                <span className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                   Page <span className="text-indigo-600 dark:text-indigo-400">{meta.page}</span> of {meta.totalPages}
+                </span>
+                <Link 
+                  href={`/search?q=${currentQ}&page=${meta.page + 1}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all ${meta.page >= meta.totalPages ? 'pointer-events-none opacity-50 text-gray-400' : 'hover:bg-gray-100 dark:hover:bg-white/10 text-gray-900 dark:text-white'}`}
+                >
+                  Next <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            )}
+
+          </main>
+        </div>
+      </div>
     </div>
-  );
+  )
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // [UPDATED] Uses your global Prisma client
+import { prisma } from '@/lib/prisma'; // Connects to your singleton DB client
 import * as bcrypt from "bcryptjs"; 
 import jwt from "jsonwebtoken"; 
 
@@ -29,26 +29,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // 4. Role Check (Admin Logic)
-    // If you want to force ONLY admins to use this specific login route:
-    if (user.role !== "ADMIN") {
-       // return NextResponse.json({ error: "Access denied: Admins only" }, { status: 403 });
-    }
-
-    // 5. Generate Token
+    // 4. Generate Token
     const token = jwt.sign(
       { userId: user.id, role: user.role, email: user.email },
       process.env.JWT_SECRET || "your-secret-key",
       { expiresIn: "1d" }
     );
 
-    // 6. Return Success & Set Cookie
+    // 5. Return Success
     const response = NextResponse.json({ 
         message: "Login successful", 
         role: user.role 
     });
     
-    // Set the token in an HTTP-only cookie
+    // Set cookie
     response.cookies.set("token", token, {
       httpOnly: true, 
       path: "/",
@@ -58,7 +52,7 @@ export async function POST(req: Request) {
     return response;
 
   } catch (error) {
-    console.error("Login Error:", error);
+    console.error("Login API Error:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
