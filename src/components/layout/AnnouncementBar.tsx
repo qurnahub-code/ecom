@@ -16,10 +16,10 @@ export function AnnouncementBar() {
             Flash Sale: Get 20% off all electronics
           </span>
           <span className="text-xs font-bold tracking-widest uppercase opacity-80 hidden sm:inline-block">
-            Free Shipping on orders over $200
+            Free Shipping on orders over Rs. 5,000
           </span>
           <span className="text-xs font-bold tracking-widest uppercase opacity-80 hidden md:inline-block">
-            New Arrivals in Stock
+            New Workspace Tech in Stock
           </span>
           <span className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase">
             Shop Now & Save 
@@ -34,10 +34,10 @@ export function AnnouncementBar() {
             Flash Sale: Get 20% off all electronics
           </span>
           <span className="text-xs font-bold tracking-widest uppercase opacity-80 hidden sm:inline-block">
-            Free Shipping on orders over $200
+            Free Shipping on orders over Rs. 5,000
           </span>
           <span className="text-xs font-bold tracking-widest uppercase opacity-80 hidden md:inline-block">
-            New Arrivals in Stock
+            New Workspace Tech in Stock
           </span>
           <span className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase">
             Shop Now & Save 

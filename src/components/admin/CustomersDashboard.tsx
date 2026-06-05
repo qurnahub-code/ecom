@@ -53,7 +53,7 @@ export default function CustomersDashboard({ initialUsers }: { initialUsers: any
         <StatCard 
           label="VIP Members" 
           value={metrics.vip} 
-          subtext="Spent > $500"
+          subtext="Spent > Rs. 50,000"
           icon={Crown} 
           color="purple"
           onClick={() => setFilter("VIP")}

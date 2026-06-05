@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 
     sendEmail({
       to: email,
-      subject: "Welcome to Majestic Inc. – Your Journey Begins",
+      subject: "Welcome to Volts Store – Your Workspace Journey Begins",
       html: emailHtml
     }).catch(err => console.error("Failed to send welcome email:", err));
 

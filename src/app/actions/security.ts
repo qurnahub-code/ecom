@@ -47,7 +47,7 @@ export async function generate2FASecret() {
 
   const secret = authenticator.generateSecret()
   const user = session.user.email
-  const otpauth = authenticator.keyuri(user, 'Majestic Inc', secret)
+  const otpauth = authenticator.keyuri(user, 'Volts Store', secret)
 
   // Save secret temporarily (or permanently but disabled)
   await prisma.user.update({

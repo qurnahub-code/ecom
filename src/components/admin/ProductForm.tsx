@@ -153,15 +153,15 @@ export function ProductForm({ initialData }: ProductFormProps) {
                 <div>
                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Selling Price</label>
                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                      <input name="price" defaultValue={initialData?.price} type="number" step="0.01" required className="w-full bg-background border border-border rounded-xl pl-8 pr-4 py-3 text-foreground font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">Rs.</span>
+                       <input name="price" defaultValue={initialData?.price} type="number" step="0.01" required className="w-full bg-background border border-border rounded-xl pl-12 pr-4 py-3 text-foreground font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
                    </div>
                 </div>
                 <div>
                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Cost Price</label>
                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                      <input name="costPrice" defaultValue={initialData?.costPrice} type="number" step="0.01" className="w-full bg-background border border-border rounded-xl pl-8 pr-4 py-3 text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">Rs.</span>
+                       <input name="costPrice" defaultValue={initialData?.costPrice} type="number" step="0.01" className="w-full bg-background border border-border rounded-xl pl-12 pr-4 py-3 text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
                    </div>
                 </div>
                 <div>
@@ -240,13 +240,13 @@ export function ProductForm({ initialData }: ProductFormProps) {
                <div className="p-6 pt-0 space-y-6 border-t border-border animate-in slide-in-from-top-2">
                  <div className="pt-4">
                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Category</label>
-                   <select name="category" defaultValue={initialData?.category} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
-                      <option value="Electronics">Electronics</option>
-                      <option value="Clothing">Clothing</option>
-                      <option value="Home">Home</option>
-                      <option value="Beauty">Beauty</option>
-                      <option value="Sports">Sports</option>
-                   </select>
+                    <select name="category" defaultValue={initialData?.category} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+                       <option value="Audio">Audio</option>
+                       <option value="Keyboards">Keyboards</option>
+                       <option value="Mice">Mice</option>
+                       <option value="Monitors">Monitors</option>
+                       <option value="Accessories">Accessories</option>
+                    </select>
                  </div>
 
                  {/* Country of Origin */}

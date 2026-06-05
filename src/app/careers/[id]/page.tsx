@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
   }
   
-  const title = `${job.title} | Careers at E-Com Platform`
+  const title = `${job.title} | Careers at Volts Store`
   const description = job.description.slice(0, 160)
   
   return {
@@ -94,7 +94,7 @@ export default async function JobDetailPage({ params }: PageProps) {
     "employmentType": rawJob.type === "Full-time" ? "FULL_TIME" : rawJob.type === "Part-time" ? "PART_TIME" : "CONTRACTOR",
     "hiringOrganization": {
       "@type": "Organization",
-      "name": "E-Com Platform",
+      "name": "Volts Store",
       "sameAs": "https://voltsstore.vercel.app"
     },
     "jobLocation": {

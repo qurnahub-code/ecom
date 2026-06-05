@@ -36,12 +36,12 @@ export async function POST(req: Request) {
     // 5. Send Real Email (Professional Template)
     await sendEmail({ 
       to: email, 
-      subject: "Reset Your Password - Majestic Admin", 
+      subject: "Reset Your Password - Volts Store", 
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
           <h2 style="color: #333; text-align: center;">Password Reset Request</h2>
           <p style="color: #555; font-size: 16px;">Hello,</p>
-          <p style="color: #555; font-size: 16px;">We received a request to reset your password for your Majestic Admin account. Click the button below to proceed:</p>
+          <p style="color: #555; font-size: 16px;">We received a request to reset your password for your Volts Store account. Click the button below to proceed:</p>
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${resetUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">Reset Password</a>
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
           <p style="color: #999; font-size: 14px; text-align: center;">This link will expire in 1 hour.</p>
           <p style="color: #999; font-size: 14px; text-align: center;">If you didn't request this, please ignore this email.</p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="text-align: center; font-size: 12px; color: #aaa;">&copy; ${new Date().getFullYear()} Majestic Inc.</p>
+          <p style="text-align: center; font-size: 12px; color: #aaa;">&copy; ${new Date().getFullYear()} Volts Store.</p>
         </div>
       ` 
     });

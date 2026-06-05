@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         <div class="container">
           <div class="header">
             <h2 style="margin:0;">📩 New Support Message</h2>
-            <p style="margin:5px 0 0; color:#666;">Received via Majestic Contact Form</p>
+            <p style="margin:5px 0 0; color:#666;">Received via Volts Store Contact Form</p>
           </div>
 
           <div class="label">From</div>
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
           <hr style="border:none; border-top:1px solid #eee; margin:30px 0;">
           <p style="font-size:12px; color:#999; text-align:center;">
             Reply directly to this email to respond to the customer.<br>
-            &copy; ${new Date().getFullYear()} Majestic Inc. System
+            &copy; ${new Date().getFullYear()} Volts Store System
           </p>
         </div>
       </body>

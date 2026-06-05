@@ -7,7 +7,7 @@ import { Metadata } from "next"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Tech & Gear Blog | E-Com Platform Insights",
+  title: "Tech & Gear Blog | Volts Store Insights",
   description: "Explore tech reviews, custom mechanical keyboard build guides, performance setup logs, and modern gaming gadget articles compiled by our expert engineering team.",
   alternates: {
     canonical: "/blog"

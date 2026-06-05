@@ -1,44 +1,44 @@
 "use client"
 
 import Link from "next/link"
-import { Smartphone, Shirt, Home, BookOpen, Watch, Glasses, ShoppingBag } from "lucide-react"
+import { Headphones, Keyboard, Mouse, Monitor, Laptop } from "lucide-react"
 
 // Configuration with Adaptive Colors (Light vs Dark)
 const CATEGORIES = [
   { 
-    name: "Electronics", 
-    icon: Smartphone, 
-    href: "/search?category=Electronics",
+    name: "Audio", 
+    icon: Headphones, 
+    href: "/search?category=Audio",
     color: "text-blue-600 dark:text-blue-400", 
     bg: "bg-blue-100 dark:bg-blue-500/20" 
   },
   { 
-    name: "Clothing", 
-    icon: Shirt, 
-    href: "/search?category=Clothing", // specific category filter
-    color: "text-pink-600 dark:text-pink-400", 
-    bg: "bg-pink-100 dark:bg-pink-500/20" 
+    name: "Keyboards", 
+    icon: Keyboard, 
+    href: "/search?category=Keyboards",
+    color: "text-indigo-600 dark:text-indigo-400", 
+    bg: "bg-indigo-100 dark:bg-indigo-500/20" 
   },
   { 
-    name: "Home", 
-    icon: Home, 
-    href: "/search?category=Home",
-    color: "text-green-600 dark:text-green-400", 
-    bg: "bg-green-100 dark:bg-green-500/20" 
+    name: "Mice", 
+    icon: Mouse, 
+    href: "/search?category=Mice",
+    color: "text-purple-600 dark:text-purple-400", 
+    bg: "bg-purple-100 dark:bg-purple-500/20" 
   },
   { 
-    name: "Books", 
-    icon: BookOpen, 
-    href: "/search?category=Books",
-    color: "text-amber-600 dark:text-amber-400", 
-    bg: "bg-amber-100 dark:bg-amber-500/20" 
+    name: "Monitors", 
+    icon: Monitor, 
+    href: "/search?category=Monitors",
+    color: "text-cyan-600 dark:text-cyan-400", 
+    bg: "bg-cyan-100 dark:bg-cyan-500/20" 
   },
   { 
     name: "Accessories", 
-    icon: Watch, 
+    icon: Laptop, 
     href: "/search?category=Accessories",
-    color: "text-purple-600 dark:text-purple-400", 
-    bg: "bg-purple-100 dark:bg-purple-500/20" 
+    color: "text-amber-600 dark:text-amber-400", 
+    bg: "bg-amber-100 dark:bg-amber-500/20" 
   },
 ]
 

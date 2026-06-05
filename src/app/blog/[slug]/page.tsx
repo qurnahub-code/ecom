@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
   }
 
-  const title = `${post.title} | E-Com Platform Blog`
+  const title = `${post.title} | Volts Store Blog`
   const description = post.excerpt.slice(0, 160)
   const imageUrl = post.coverImage || "https://voltsstore.vercel.app/icon.png"
 
@@ -79,7 +79,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
     },
     "publisher": {
       "@type": "Organization",
-      "name": "E-Com Platform",
+      "name": "Volts Store",
       "logo": {
         "@type": "ImageObject",
         "url": "https://voltsstore.vercel.app/icon.png"

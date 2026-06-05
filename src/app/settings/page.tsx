@@ -45,7 +45,7 @@ export default function SettingsPage() {
   // --- 1. SETTINGS STATE ---
   const [profile, setProfile] = useState({ name: "Abu Sufyan", email: "user@example.com", bio: "Tech Enthusiast" })
   const [notifications, setNotifications] = useState({ orderUpdates: true, promotions: false, security: true })
-  const [preferences, setPreferences] = useState({ currency: "USD", language: "English" })
+  const [preferences, setPreferences] = useState({ currency: "PKR", language: "English" })
 
   // --- 2. SECURITY MODAL STATE ---
   const [activeModal, setActiveModal] = useState<'password' | '2fa' | null>(null)

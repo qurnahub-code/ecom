@@ -196,7 +196,7 @@ export default async function OrderDetailsPage({ params }: PageProps) {
                       </div>
                       <div className="flex justify-between text-zinc-500 dark:text-zinc-400 text-sm">
                           <span>Tax</span>
-                          <span className="font-mono text-zinc-900 dark:text-zinc-200">$0.00</span>
+                          <span className="font-mono text-zinc-900 dark:text-zinc-200">{formatPrice(0)}</span>
                       </div>
                       
                       <div className="h-px bg-gray-200 dark:bg-zinc-800 my-4" />

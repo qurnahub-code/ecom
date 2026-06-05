@@ -35,8 +35,8 @@ export default async function CustomersPage() {
       ordersCount: user.orders.length,
       totalSpent,
       lastActive: lastOrderDate ? lastOrderDate.toISOString() : user.createdAt.toISOString(),
-      // Simple logic: VIP if spent > $500
-      status: totalSpent > 500 ? "VIP" : user.orders.length > 0 ? "Active" : "New"
+      // Simple logic: VIP if spent > Rs. 50,000
+      status: totalSpent > 50000 ? "VIP" : user.orders.length > 0 ? "Active" : "New"
     }
   })
 

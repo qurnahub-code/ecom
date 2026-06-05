@@ -24,22 +24,22 @@ export function getWelcomeEmailHtml(name: string) {
     </head>
     <body>
       <div class="container">
-        <div class="header">
-          <h1>MAJESTIC INC.</h1>
+        <div className="header">
+          <h1>VOLTS STORE</h1>
         </div>
-        <div class="content">
-          <div class="greeting">Welcome aboard, ${name}!</div>
-          <p class="text">
-            We are thrilled to formally welcome you to Majestic Inc. Your account has been successfully created, giving you full access to our premium e-commerce platform.
+        <div className="content">
+          <div className="greeting">Welcome aboard, ${name}!</div>
+          <p className="text">
+            We are thrilled to formally welcome you to Volts Store. Your account has been successfully created, giving you full access to our premium e-commerce platform.
           </p>
           <p class="text">
-            At Majestic, we are committed to providing you with top-tier tech, fashion, and lifestyle products. Here is what you can do next:
+            At Volts Store, we are committed to providing you with premium workspace tech gear, mechanical keyboards, mice, and studio accessories. Here is what you can do next:
           </p>
           
-          <div class="features">
-            <div class="feature-item">✅ <strong>Personalized Dashboard:</strong> Track orders and manage preferences.</div>
-            <div class="feature-item">✅ <strong>Exclusive Access:</strong> Get early notifications on flash sales.</div>
-            <div class="feature-item">✅ <strong>24/7 Support:</strong> Our team is always here to help.</div>
+          <div className="features">
+            <div className="feature-item">✅ <strong>Personalized Dashboard:</strong> Track orders and manage preferences.</div>
+            <div className="feature-item">✅ <strong>Exclusive Access:</strong> Get early notifications on flash sales.</div>
+            <div className="feature-item">✅ <strong>24/7 Support:</strong> Our team is always here to help.</div>
           </div>
 
           <center>
@@ -50,9 +50,9 @@ export function getWelcomeEmailHtml(name: string) {
             If you have any questions, simply reply to this email or contact our support team directly.
           </p>
         </div>
-        <div class="footer">
-          <p>&copy; ${new Date().getFullYear()} Majestic Inc. All rights reserved.</p>
-          <p>123 Commerce St, Tech City, USA</p>
+        <div className="footer">
+          <p>&copy; ${new Date().getFullYear()} Volts Store. All rights reserved.</p>
+          <p>DHA Phase 5, Lahore, Pakistan</p>
         </div>
       </div>
     </body>
@@ -137,9 +137,9 @@ export function getOrderConfirmationEmailHtml(order: any) {
             <a href="${process.env.NEXTAUTH_URL}/tracking" class="btn">Track Your Order</a>
           </center>
         </div>
-        <div class="footer">
-          <p>Need help? Contact support@majestic.com</p>
-          <p>&copy; ${new Date().getFullYear()} Majestic Inc.</p>
+        <div className="footer">
+          <p>Need help? Contact support@voltsstore.com</p>
+          <p>&copy; ${new Date().getFullYear()} Volts Store.</p>
         </div>
       </div>
     </body>

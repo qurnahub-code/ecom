@@ -19,10 +19,10 @@ export default async function HomePage() {
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "E-Com Platform",
+    "name": "Volts Store",
     "url": "https://voltsstore.vercel.app",
     "logo": "https://voltsstore.vercel.app/icon.png",
-    "description": "Premium electronics, gaming gadgets, and mechanical keyboard marketplace.",
+    "description": "Premium mechanical keyboards, gaming gear, high-fidelity audio, and workspace monitors.",
     "sameAs": [
       "https://github.com/qurnahub-code/ecom"
     ]
@@ -31,7 +31,7 @@ export default async function HomePage() {
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "E-Com Platform",
+    "name": "Volts Store",
     "url": "https://voltsstore.vercel.app",
     "potentialAction": {
       "@type": "SearchAction",
@@ -154,7 +154,7 @@ export default async function HomePage() {
               </div>
 
               <h3 className="text-xl font-bold mb-2 text-black dark:text-white">Get Exclusive Offers</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Join 50,000+ subscribers.</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Be the first to know about new arrivals and exclusive deals.</p>
               
               <form className="flex gap-2 max-w-sm mx-auto">
                 <input type="email" placeholder="Email address" className="flex-1 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-gray-50 border border-gray-300 text-black placeholder:text-gray-500 dark:bg-black/50 dark:border-white/10 dark:text-white" />

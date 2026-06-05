@@ -24,7 +24,7 @@ export async function validateCoupon(code: string, cartTotal: number) {
   }
 
   if (cartTotal < coupon.minAmount) {
-    return { valid: false, message: `Add $${(coupon.minAmount - cartTotal).toFixed(2)} more to use this coupon.` }
+    return { valid: false, message: `Add Rs. ${Math.ceil(coupon.minAmount - cartTotal).toLocaleString('en-PK')} more to use this coupon.` }
   }
 
   // 3. Calculate Discount Amount
@@ -35,7 +35,7 @@ export async function validateCoupon(code: string, cartTotal: number) {
     discountAmount = (cartTotal * coupon.discount) / 100
     // Optional: Cap max discount if needed
   } else {
-    // FIXED amount (e.g. $20 off)
+    // FIXED amount (e.g. Rs. 200 off)
     discountAmount = coupon.discount
   }
 

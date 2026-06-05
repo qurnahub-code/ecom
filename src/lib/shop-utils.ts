@@ -2,10 +2,10 @@
 
 // --- CONFIGURATION ---
 export const SITE_CONFIG = {
-  currency: 'USD',
-  taxRate: 0.08, // 8% Tax
-  shippingFlatRate: 15.00,
-  freeShippingThreshold: 200.00,
+  currency: 'PKR',
+  taxRate: 0.0, // Tax is inclusive in product prices
+  shippingFlatRate: 250,
+  freeShippingThreshold: 5000,
 }
 
 // --- FUNCTIONS ---
@@ -13,10 +13,7 @@ export const SITE_CONFIG = {
 // 1. Format Money
 export function formatPrice(amount: number | string) {
   const price = Number(amount)
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: SITE_CONFIG.currency,
-  }).format(price)
+  return `Rs. ${price.toLocaleString('en-PK')}`
 }
 
 // 2. Format Date

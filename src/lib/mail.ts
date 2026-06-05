@@ -12,7 +12,7 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
 
   try {
     const info = await transporter.sendMail({
-      from: `"Majestic Admin" <${process.env.GMAIL_USER}>`, // Sender address
+      from: `"Volts Store Admin" <${process.env.GMAIL_USER}>`, // Sender address
       to, // List of receivers
       subject, // Subject line
       html, // HTML body content

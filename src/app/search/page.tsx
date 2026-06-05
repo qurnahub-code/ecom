@@ -4,7 +4,7 @@ import { Search, Filter, ArrowLeft, ArrowRight, SlidersHorizontal, X } from "luc
 import { ProductCard } from "@/components/products/ProductCard"
 
 export const metadata: Metadata = {
-  title: "Search Products | Majestic Inc.",
+  title: "Search Products | Volts Store",
   description: "Explore our premium collection.",
 }
 
@@ -108,7 +108,7 @@ export default async function SearchPage(props: { searchParams: SearchParams }) 
              <div className="space-y-3">
                <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Category</p>
                <div className="flex flex-col gap-1">
-                 {['All', 'Electronics', 'Fashion', 'Home', 'Accessories'].map((cat) => (
+                 {['All', 'Audio', 'Keyboards', 'Mice', 'Monitors', 'Accessories'].map((cat) => (
                    <Link 
                      key={cat}
                      href={`/search?q=${currentQ}&category=${cat === 'All' ? '' : cat}`}
@@ -129,10 +129,10 @@ export default async function SearchPage(props: { searchParams: SearchParams }) 
              <div className="space-y-3">
                <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Price</p>
                <div className="grid grid-cols-2 gap-2">
-                  <Link href={`/search?q=${currentQ}&maxPrice=50`} className="text-xs border border-gray-200 dark:border-white/10 rounded-lg p-2 text-center hover:border-indigo-500 hover:text-indigo-500 transition-all bg-white dark:bg-zinc-800">Under $50</Link>
-                  <Link href={`/search?q=${currentQ}&minPrice=50&maxPrice=100`} className="text-xs border border-gray-200 dark:border-white/10 rounded-lg p-2 text-center hover:border-indigo-500 hover:text-indigo-500 transition-all bg-white dark:bg-zinc-800">$50 - $100</Link>
-                  <Link href={`/search?q=${currentQ}&minPrice=100&maxPrice=500`} className="text-xs border border-gray-200 dark:border-white/10 rounded-lg p-2 text-center hover:border-indigo-500 hover:text-indigo-500 transition-all bg-white dark:bg-zinc-800">$100 - $500</Link>
-                  <Link href={`/search?q=${currentQ}&minPrice=500`} className="text-xs border border-gray-200 dark:border-white/10 rounded-lg p-2 text-center hover:border-indigo-500 hover:text-indigo-500 transition-all bg-white dark:bg-zinc-800">$500+</Link>
+                  <Link href={`/search?q=${currentQ}&maxPrice=5000`} className="text-xs border border-gray-200 dark:border-white/10 rounded-lg p-2 text-center hover:border-indigo-500 hover:text-indigo-500 transition-all bg-white dark:bg-zinc-800">Under Rs. 5k</Link>
+                  <Link href={`/search?q=${currentQ}&minPrice=5000&maxPrice=10000`} className="text-xs border border-gray-200 dark:border-white/10 rounded-lg p-2 text-center hover:border-indigo-500 hover:text-indigo-500 transition-all bg-white dark:bg-zinc-800">Rs. 5k - 10k</Link>
+                  <Link href={`/search?q=${currentQ}&minPrice=10000&maxPrice=25000`} className="text-xs border border-gray-200 dark:border-white/10 rounded-lg p-2 text-center hover:border-indigo-500 hover:text-indigo-500 transition-all bg-white dark:bg-zinc-800">Rs. 10k - 25k</Link>
+                  <Link href={`/search?q=${currentQ}&minPrice=25000`} className="text-xs border border-gray-200 dark:border-white/10 rounded-lg p-2 text-center hover:border-indigo-500 hover:text-indigo-500 transition-all bg-white dark:bg-zinc-800">Rs. 25k+</Link>
                </div>
              </div>
           </aside>

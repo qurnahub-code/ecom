@@ -14,10 +14,10 @@ export function AnalyticsChart({ graphData }: AnalyticsChartProps) {
   // baseline max values
   const maxRevenue = Math.max(...graphData.map(d => d.total)) || 1
   
-  // Calculate simulated orders (divided by 85 as average ticket size, min 1 order)
+  // Calculate simulated orders (divided by 5000 as average PKR ticket size, min 2 orders)
   const getSimulatedOrders = (revenue: number) => {
     if (revenue === 0) return 0
-    return Math.max(Math.round(revenue / 85), 2)
+    return Math.max(Math.round(revenue / 5000), 2)
   }
   const maxOrders = Math.max(...graphData.map(d => getSimulatedOrders(d.total))) || 1
 
@@ -40,7 +40,7 @@ export function AnalyticsChart({ graphData }: AnalyticsChartProps) {
           onChange={(e) => setViewType(e.target.value as any)}
           className="bg-gray-100 dark:bg-zinc-800 text-xs font-bold px-3 py-2 rounded-xl border border-transparent outline-none cursor-pointer text-zinc-700 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700 transition"
         >
-          <option value="revenue">Revenue ($)</option>
+          <option value="revenue">Revenue (Rs.)</option>
           <option value="orders">Orders (Qty)</option>
         </select>
       </div>

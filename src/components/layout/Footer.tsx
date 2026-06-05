@@ -12,24 +12,24 @@ export function Footer() {
           {/* Column 1: Company Info */}
           <div className="space-y-6">
             <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
-              E-Com Platform
+              Volts Store
             </h3>
             <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-              Your one-stop destination for premium tech, fashion, and lifestyle products.
+              Your premium workspace destination for mechanical keyboards, monitors, audio gear, and studio accessories.
             </p>
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                 <MapPin className="w-4 h-4 text-indigo-500" />
-                <span>123 Commerce St, Tech City, USA</span>
+                <span>DHA Phase 5, Lahore, Pakistan</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                 <Phone className="w-4 h-4 text-indigo-500" />
-                <span>+1 (555) 123-4567</span>
+                <span>+92 (300) 123-4567</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                 <Mail className="w-4 h-4 text-indigo-500" />
-                <Link href="/contact" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                  support@ecomplatform.com
+                <Link href="mailto:support@voltsstore.com" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                  support@voltsstore.com
                 </Link>
               </div>
             </div>
@@ -50,10 +50,11 @@ export function Footer() {
           {/* Column 3: Shop Categories */}
            <div>
             <h3 className="text-gray-900 dark:text-white text-lg font-bold mb-6">Shop</h3>
-            <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-              <li><Link href="/search?category=Electronics" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Electronics</Link></li>
-              <li><Link href="/search?category=Fashion" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Fashion</Link></li>
-              <li><Link href="/search?category=Home" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Home & Garden</Link></li>
+             <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+              <li><Link href="/search?category=Audio" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Audio</Link></li>
+              <li><Link href="/search?category=Keyboards" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Keyboards</Link></li>
+              <li><Link href="/search?category=Mice" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Mice</Link></li>
+              <li><Link href="/search?category=Monitors" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Monitors</Link></li>
               <li><Link href="/search?category=Accessories" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Accessories</Link></li>
             </ul>
           </div>
@@ -70,13 +71,20 @@ export function Footer() {
 
             <h4 className="text-gray-900 dark:text-white text-sm font-bold mb-4">Follow Us</h4>
             <div className="flex gap-4">
-              {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
+              {[
+                { icon: Facebook, href: "https://facebook.com/voltsstore" },
+                { icon: Twitter, href: "https://twitter.com/voltsstore" },
+                { icon: Instagram, href: "https://instagram.com/voltsstore" },
+                { icon: Linkedin, href: "https://linkedin.com/company/voltsstore" }
+              ].map((social, i) => (
                 <Link 
                   key={i} 
-                  href="#" 
+                  href={social.href} 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="bg-gray-100 dark:bg-white/5 p-2.5 rounded-full text-gray-500 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-500 dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-indigo-500/20 hover:shadow-lg"
                 >
-                  <Icon className="w-4 h-4" />
+                  <social.icon className="w-4 h-4" />
                 </Link>
               ))}
             </div>
@@ -86,7 +94,7 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="border-t border-gray-200 dark:border-white/10 pt-8 mt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-          <p>&copy; {new Date().getFullYear()} Modern Ecommerce Platform. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Volts Store. All rights reserved.</p>
           
           <div className="flex gap-6 mt-4 md:mt-0">
               <Link href="/privacy" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Privacy Policy</Link>

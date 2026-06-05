@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     }
   }
   
-  const title = `${product.name} | E-Com Platform`
+  const title = `${product.name} | Volts Store`
   const description = product.description.slice(0, 160)
   const imageUrl = product.imageUrl || "https://voltsstore.vercel.app/icon.png"
   
@@ -115,19 +115,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
     "sku": product.sku || product.id,
     "brand": {
       "@type": "Brand",
-      "name": product.brand || "E-Com Platform"
+      "name": product.brand || "Volts Store"
     },
     "offers": {
       "@type": "Offer",
       "url": `https://voltsstore.vercel.app/products/${product.id}`,
-      "priceCurrency": "USD",
-      "price": Number(product.price).toFixed(2),
+      "priceCurrency": "PKR",
+      "price": Number(product.price).toFixed(0),
       "priceValidUntil": "2030-01-01",
       "itemCondition": "https://schema.org/NewCondition",
       "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       "seller": {
         "@type": "Organization",
-        "name": "E-Com Platform"
+        "name": "Volts Store"
       }
     }
   }

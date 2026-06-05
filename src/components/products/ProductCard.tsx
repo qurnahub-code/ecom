@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Star, ExternalLink, ImageIcon } from "lucide-react"
 import { WishlistButton } from "@/components/ui/WishlistButton"
+import { formatPrice } from "@/lib/shop-utils"
 
 interface ProductCardProps {
   product: any
@@ -111,7 +112,7 @@ export function ProductCard({ product, isWishlisted = false, layout = 'grid' }: 
         {/* Price & Action */}
         <div className={`flex items-center justify-between ${layout === 'grid' ? 'mt-auto pt-3 border-t border-gray-100 dark:border-white/10' : 'mt-2'}`}>
           <span className="text-lg font-bold text-gray-900 dark:text-white">
-            ${Number(product.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {formatPrice(product.price)}
           </span>
           
           <span className="text-[10px] font-bold px-2 py-1 rounded transition-colors

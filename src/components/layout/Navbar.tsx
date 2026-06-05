@@ -29,7 +29,7 @@ export function Navbar() {
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-black">
               <ShoppingBag className="w-5 h-5" />
             </div>
-            <span className="font-black text-lg tracking-tight hidden sm:block">E-Com Platform</span>
+            <span className="font-black text-lg tracking-tight hidden sm:block">Volts Store</span>
           </Link>
 
           {/* Desktop Nav Links */}

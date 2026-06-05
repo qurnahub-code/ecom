@@ -9,7 +9,7 @@ export function WhatsAppButton() {
   
   // Replace with the client's actual support number
   const phoneNumber = "923001234567"
-  const message = encodeURIComponent("Hi Majestic Store! I need assistance with my shopping.")
+  const message = encodeURIComponent("Hi Volts Store! I need assistance with my shopping.")
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`
 
   return (
