@@ -189,6 +189,74 @@ export default async function ProductPage({ params }: ProductPageProps) {
                <ProductSupportChat productName={product.name} />
             </div>
 
+            {/* --- PRODUCT SPECIFICATIONS --- */}
+            <div className="bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-3xl p-6 md:p-8 mb-10 shadow-sm">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Product Specifications</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                <div className="flex justify-between py-3 border-b border-gray-100 dark:border-white/5">
+                  <span className="text-muted-foreground">Country of Origin</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{product.origin || "Local"}</span>
+                </div>
+                {product.brand && (
+                  <div className="flex justify-between py-3 border-b border-gray-100 dark:border-white/5">
+                    <span className="text-muted-foreground">Brand</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">{product.brand}</span>
+                  </div>
+                )}
+                {product.sku && (
+                  <div className="flex justify-between py-3 border-b border-gray-100 dark:border-white/5">
+                    <span className="text-muted-foreground">SKU / Model</span>
+                    <span className="font-semibold text-gray-900 dark:text-white font-mono">{product.sku}</span>
+                  </div>
+                )}
+                {product.barcode && (
+                  <div className="flex justify-between py-3 border-b border-gray-100 dark:border-white/5">
+                    <span className="text-muted-foreground">Barcode</span>
+                    <span className="font-semibold text-gray-900 dark:text-white font-mono">{product.barcode}</span>
+                  </div>
+                )}
+                {product.unit && (
+                  <div className="flex justify-between py-3 border-b border-gray-100 dark:border-white/5">
+                    <span className="text-muted-foreground">Selling Unit</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">{product.unit}</span>
+                  </div>
+                )}
+                {product.expiryDate && (
+                  <div className="flex justify-between py-3 border-b border-gray-100 dark:border-white/5">
+                    <span className="text-muted-foreground">Expiry Date</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                      {new Date(product.expiryDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </div>
+                )}
+              </div>
+              
+              {product.tags && (
+                <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-3">Product Tags</span>
+                  <div className="flex flex-wrap gap-2">
+                    {product.tags.split(",").map((tag: string) => {
+                      const cleanTag = tag.trim()
+                      if (!cleanTag) return null
+                      return (
+                        <Link 
+                          key={cleanTag}
+                          href={`/search?q=${encodeURIComponent(cleanTag)}`}
+                          className="px-3 py-1 rounded-full bg-gray-100 dark:bg-zinc-800 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-indigo-500 hover:text-white dark:hover:bg-indigo-600 transition-colors border border-gray-200 dark:border-white/5"
+                        >
+                          #{cleanTag}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* --- REVIEWS SECTION (EMBEDDED) --- */}
             <div className="bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-3xl p-6 md:p-8">
                  <div className="flex items-center justify-between mb-6">

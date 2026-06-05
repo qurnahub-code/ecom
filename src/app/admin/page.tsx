@@ -5,8 +5,10 @@ import { formatPrice } from "@/lib/shop-utils"
 import { 
   DollarSign, ShoppingBag, Users, AlertTriangle, 
   ArrowRight, TrendingUp, Package, Clock, 
-  Plus, Download, Target, ChevronRight, UserPlus
+  Plus, Target, ChevronRight, UserPlus
 } from "lucide-react"
+import { ExportCSVButton } from "@/components/admin/ExportCSVButton"
+import { AnalyticsChart } from "@/components/admin/AnalyticsChart"
 
 export const dynamic = 'force-dynamic'
 
@@ -27,9 +29,11 @@ export default async function AdminRootPage() {
             </div>
             
             <div className="flex items-center gap-3">
-               <button className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-sm font-bold text-zinc-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors shadow-sm">
-                  <Download className="w-4 h-4" /> Export Report
-               </button>
+               <ExportCSVButton 
+                 data={stats.graphData.map(d => ({ Month: d.name, Revenue: d.total }))} 
+                 filename="monthly_revenue_report.csv"
+                 label="Export Report"
+               />
                <Link 
                  href="/admin/products/new" 
                  className="flex items-center gap-2 px-4 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-xl text-sm font-bold hover:opacity-90 transition-opacity shadow-lg shadow-zinc-500/20"
@@ -104,34 +108,7 @@ export default async function AdminRootPage() {
              <div className="lg:col-span-2 space-y-6">
                 
                 {/* CHART SECTION */}
-                <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 p-6 shadow-sm">
-                   <div className="flex items-center justify-between mb-8">
-                      <div>
-                         <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Revenue Analytics</h2>
-                         <p className="text-sm text-zinc-500">Monthly revenue performance</p>
-                      </div>
-                      <select className="bg-gray-100 dark:bg-zinc-800 text-xs font-bold px-3 py-2 rounded-lg border border-transparent outline-none cursor-pointer">
-                         <option>Last 6 Months</option>
-                         <option>Last Year</option>
-                      </select>
-                   </div>
-                   
-                   <div className="h-[220px] w-full flex items-end justify-between gap-4 px-2">
-                      {stats.graphData.map((data, i) => (
-                         <div key={i} className="flex flex-col items-center gap-3 flex-1 group">
-                            <div 
-                              className="w-full bg-blue-500/10 dark:bg-blue-500/20 rounded-t-lg relative group-hover:bg-blue-500 transition-all duration-300"
-                              style={{ height: `${(data.total / maxRevenue) * 100}%` }}
-                            >
-                              <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 shadow-xl font-bold">
-                                 {formatPrice(data.total)}
-                              </div>
-                            </div>
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase group-hover:text-blue-500 transition-colors">{data.name}</span>
-                         </div>
-                      ))}
-                   </div>
-                </div>
+                <AnalyticsChart graphData={stats.graphData} />
 
                 {/* RECENT ORDERS TABLE */}
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">

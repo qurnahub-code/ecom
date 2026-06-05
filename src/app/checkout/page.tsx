@@ -143,6 +143,8 @@ export default function CheckoutPage() {
     
     // Payment Info
     submitData.append("paymentMethod", paymentMethod)
+    submitData.append("transactionId", paymentData.transactionId)
+    submitData.append("paymentPhone", paymentData.paymentPhone)
     
     // Optional: Pass custom payment data if your server action is updated to handle them
     // (Note: The basic placeOrder function receives FormData, so standard fields work best. 

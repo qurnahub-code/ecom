@@ -1,18 +1,24 @@
 "use client"
 
-import { useState, useRef, useMemo } from "react"
+import { useState, useRef, useMemo, useEffect } from "react"
+import Link from "next/link"
 import { 
   Search, ScanLine, Trash2, Edit, RefreshCw, 
   AlertTriangle, XCircle, CheckCircle2, Globe, Truck,
   Camera, X, QrCode, Calendar, Package, TrendingUp, DollarSign, Layers
 } from "lucide-react"
-import { removeProduct, updateProductDetails, reorderStock } from "@/app/actions/admin"
+import { removeProduct, updateProductDetails, reorderStock, quickUpdateInventoryProduct } from "@/app/actions/admin"
 
 export default function InventoryDashboard({ initialProducts }: { initialProducts: any[] }) {
   const [products, setProducts] = useState(initialProducts)
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState("ALL")
   const [editingProduct, setEditingProduct] = useState<any>(null)
+
+  // Sync initialProducts prop to local state when Server Component revalidates
+  useEffect(() => {
+    setProducts(initialProducts)
+  }, [initialProducts])
   
   // Camera State
   const [isCameraOpen, setIsCameraOpen] = useState(false)
@@ -347,26 +353,51 @@ export default function InventoryDashboard({ initialProducts }: { initialProduct
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in">
            <div className="bg-card w-full max-w-lg rounded-2xl shadow-2xl border border-border flex flex-col animate-in zoom-in-95">
               <div className="p-6 border-b border-border">
-                <h3 className="text-lg font-bold text-foreground">Edit Product</h3>
+                <h3 className="text-lg font-bold text-foreground">Quick Edit Product</h3>
               </div>
-              <form className="p-6 space-y-4">
+              <form 
+                onSubmit={async (e) => {
+                  e.preventDefault()
+                  const formData = new FormData(e.currentTarget)
+                  try {
+                    await quickUpdateInventoryProduct(formData)
+                    setEditingProduct(null)
+                  } catch (err) {
+                    alert("Failed to update product")
+                  }
+                }}
+                className="p-6 space-y-4"
+              >
+                 <input type="hidden" name="id" value={editingProduct.id} />
+                 
                  <div>
                    <label className="text-xs font-bold text-muted-foreground uppercase">Name</label>
-                   <input defaultValue={editingProduct.name} className="w-full mt-1 bg-muted/50 border border-border p-2 rounded-lg text-foreground focus:border-primary outline-none" />
+                   <input name="name" required defaultValue={editingProduct.name} className="w-full mt-1 bg-background border border-border p-3 rounded-xl text-foreground focus:border-primary outline-none transition-all" />
                  </div>
+                 
                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-bold text-muted-foreground uppercase">Price</label>
-                      <input type="number" defaultValue={editingProduct.price} className="w-full mt-1 bg-muted/50 border border-border p-2 rounded-lg text-foreground focus:border-primary outline-none" />
+                      <input name="price" type="number" step="0.01" required defaultValue={editingProduct.price} className="w-full mt-1 bg-background border border-border p-3 rounded-xl text-foreground focus:border-primary outline-none transition-all" />
                     </div>
                     <div>
                       <label className="text-xs font-bold text-muted-foreground uppercase">Stock</label>
-                      <input type="number" defaultValue={editingProduct.stock} className="w-full mt-1 bg-muted/50 border border-border p-2 rounded-lg text-foreground focus:border-primary outline-none" />
+                      <input name="stock" type="number" required defaultValue={editingProduct.stock} className="w-full mt-1 bg-background border border-border p-3 rounded-xl text-foreground focus:border-primary outline-none transition-all" />
                     </div>
                  </div>
-                 <div className="pt-4 flex gap-3">
-                   <button type="button" onClick={() => setEditingProduct(null)} className="flex-1 py-2 rounded-lg border border-border text-foreground hover:bg-muted">Cancel</button>
-                   <button type="button" onClick={() => { alert("Saved!"); setEditingProduct(null) }} className="flex-1 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90">Save Changes</button>
+                 
+                 <div className="pt-4 flex flex-col gap-3">
+                   <div className="flex gap-3">
+                     <button type="button" onClick={() => setEditingProduct(null)} className="flex-1 py-3 rounded-xl border border-border text-foreground hover:bg-muted font-medium transition-colors">Cancel</button>
+                     <button type="submit" className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground hover:opacity-90 font-bold transition-opacity shadow-lg shadow-primary/20">Save Changes</button>
+                   </div>
+                   
+                   <Link 
+                     href={`/admin/products/${editingProduct.id}`}
+                     className="block text-center text-xs text-primary hover:underline font-semibold mt-2"
+                   >
+                     Edit Detailed Specifications
+                   </Link>
                  </div>
               </form>
            </div>

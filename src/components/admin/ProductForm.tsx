@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { createProduct, updateProductDetails } from "@/modules/admin/actions"
+import { createProduct, updateProductDetails } from "@/app/actions/admin"
 import Link from "next/link"
 import { 
   ChevronLeft, Save, Upload, X, Image as ImageIcon, 
@@ -18,8 +18,8 @@ export function ProductForm({ initialData }: ProductFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const isEditing = !!initialData
   
-  // Toggle State for Organization Section
-  const [showOrgSection, setShowOrgSection] = useState(false)
+  // Toggle State for Organization Section (Open by default)
+  const [showOrgSection, setShowOrgSection] = useState(true)
   
   // Vendor Modal State
   const [isVendorModalOpen, setIsVendorModalOpen] = useState(false)
@@ -165,8 +165,30 @@ export function ProductForm({ initialData }: ProductFormProps) {
                    </div>
                 </div>
                 <div>
+                   <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Tax Rate (%)</label>
+                   <input name="taxRate" defaultValue={initialData?.taxRate !== null && initialData?.taxRate !== undefined ? initialData.taxRate : ""} type="number" placeholder="0" className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+             </div>
+             
+             <div className="w-full h-px bg-border my-6"></div>
+
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Stock</label>
                    <input name="stock" defaultValue={initialData?.stock} type="number" required className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+                <div>
+                   <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Low Stock Alert</label>
+                   <input name="minStock" defaultValue={initialData?.minStock !== null && initialData?.minStock !== undefined ? initialData.minStock : 10} type="number" className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+                <div>
+                   <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Unit Type</label>
+                   <select name="unit" defaultValue={initialData?.unit || "pcs"} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none cursor-pointer">
+                      <option value="pcs">Pieces (pcs)</option>
+                      <option value="kg">Kilogram (kg)</option>
+                      <option value="box">Box</option>
+                      <option value="ltr">Liter (ltr)</option>
+                   </select>
                 </div>
              </div>
           </div>
@@ -223,7 +245,28 @@ export function ProductForm({ initialData }: ProductFormProps) {
                       <option value="Clothing">Clothing</option>
                       <option value="Home">Home</option>
                       <option value="Beauty">Beauty</option>
+                      <option value="Sports">Sports</option>
                    </select>
+                 </div>
+
+                 {/* Country of Origin */}
+                 <div>
+                   <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Country of Origin</label>
+                   <select name="origin" defaultValue={initialData?.origin || "Local"} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none cursor-pointer">
+                      <option value="Local">Local</option>
+                      <option value="Imported">Imported</option>
+                   </select>
+                 </div>
+
+                 {/* Expiry Date */}
+                 <div>
+                   <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Expiry Date</label>
+                   <input 
+                     name="expiryDate" 
+                     type="date" 
+                     defaultValue={initialData?.expiryDate || ""} 
+                     className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                   />
                  </div>
 
                  {/* Vendor Field with Add Button */}

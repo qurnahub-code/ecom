@@ -23,6 +23,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
     stock: Number(product.stock),
     taxRate: product.taxRate ? Number(product.taxRate) : null,
     minStock: product.minStock ? Number(product.minStock) : 10,
+    expiryDate: product.expiryDate ? product.expiryDate.toISOString().split('T')[0] : null,
     createdAt: product.createdAt.toISOString(),
     updatedAt: product.updatedAt.toISOString(),
     // Handle image URL specifically

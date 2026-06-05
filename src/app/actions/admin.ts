@@ -67,9 +67,9 @@ export async function createProduct(formData: FormData) {
     const tags = formData.get("tags") as string
     const origin = formData.get("origin") as string // [NEW]
     
-    // [NEW] Handle Date Parsing
+    // [NEW] Handle Date Parsing safely (avoid crashes on empty/blank dates)
     const expiryRaw = formData.get("expiryDate") as string
-    const expiryDate = expiryRaw ? new Date(expiryRaw) : null
+    const expiryDate = (expiryRaw && expiryRaw.trim() !== "") ? new Date(expiryRaw) : null
     
     // Handle Image Upload
     const file = formData.get('image') as unknown as File
@@ -122,9 +122,9 @@ export async function updateProductDetails(formData: FormData) {
     const tags = formData.get("tags") as string
     const origin = formData.get("origin") as string // [NEW]
 
-    // [NEW] Handle Date Parsing
+    // [NEW] Handle Date Parsing safely (avoid crashes on empty/blank dates)
     const expiryRaw = formData.get("expiryDate") as string
-    const expiryDate = expiryRaw ? new Date(expiryRaw) : null
+    const expiryDate = (expiryRaw && expiryRaw.trim() !== "") ? new Date(expiryRaw) : null
 
     // Handle Image Upload
     const file = formData.get('image') as unknown as File
@@ -167,7 +167,35 @@ export async function updateProductDetails(formData: FormData) {
   redirect('/admin/products')
 }
 
-// 3. DELETE PRODUCT
+// 3. QUICK UPDATE PRODUCT (From Inventory Table, does not redirect)
+export async function quickUpdateInventoryProduct(formData: FormData) {
+  try {
+    const id = formData.get("id") as string
+    if (!id) throw new Error("Product ID is required")
+    
+    const name = formData.get("name") as string
+    const price = parseNumber(formData.get("price"))
+    const stock = parseNumber(formData.get("stock"))
+
+    await prisma.product.update({
+      where: { id },
+      data: {
+        name,
+        price,
+        stock
+      }
+    })
+
+    revalidatePath('/admin/inventory')
+    revalidatePath('/admin/products')
+    return { success: true }
+  } catch (error) {
+    console.error("Quick Update Error:", error)
+    throw new Error("Failed to quick-update product")
+  }
+}
+
+// 4. DELETE PRODUCT
 export async function removeProduct(id: string) {
   try {
     await prisma.product.delete({ where: { id } })

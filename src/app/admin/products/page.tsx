@@ -4,6 +4,7 @@ import {
   Plus, Search, MoreHorizontal, Package, 
   Barcode, Tag, Truck, DollarSign 
 } from "lucide-react"
+import { ExportCSVButton } from "@/components/admin/ExportCSVButton"
 
 export const dynamic = 'force-dynamic'
 
@@ -27,16 +28,39 @@ export default async function AdminProductsPage() {
           </p>
         </div>
         
-        {/* RGB "Add Product" Button */}
-        <Link 
-          href="/admin/products/new" 
-          className="group relative inline-flex items-center justify-center p-[2px] rounded-xl overflow-hidden shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <span className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 animate-[spin_4s_linear_infinite]" />
-          <span className="relative flex items-center gap-2 px-6 py-2.5 rounded-[10px] bg-zinc-900 text-white font-bold transition-all group-hover:bg-zinc-800">
-            <Plus className="w-4 h-4" /> Add Product
-          </span>
-        </Link>
+        <div className="flex items-center gap-3">
+          <ExportCSVButton 
+            data={products.map(p => ({
+              ProductId: p.id,
+              Name: p.name,
+              Category: p.category,
+              Price: Number(p.price),
+              CostPrice: p.costPrice ? Number(p.costPrice) : 0,
+              Stock: p.stock,
+              SKU: p.sku || "",
+              Brand: p.brand || "",
+              Barcode: p.barcode || "",
+              Origin: p.origin || "",
+              ExpiryDate: p.expiryDate ? p.expiryDate.toISOString() : "",
+              Tags: p.tags || "",
+              Vendor: p.vendor || "",
+              DateAdded: p.createdAt.toISOString()
+            }))}
+            filename="store_products_catalog.csv"
+            label="Export Products"
+          />
+          
+          {/* RGB "Add Product" Button */}
+          <Link 
+            href="/admin/products/new" 
+            className="group relative inline-flex items-center justify-center p-[2px] rounded-xl overflow-hidden shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <span className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 animate-[spin_4s_linear_infinite]" />
+            <span className="relative flex items-center gap-2 px-6 py-2.5 rounded-[10px] bg-zinc-900 text-white font-bold transition-all group-hover:bg-zinc-800">
+              <Plus className="w-4 h-4" /> Add Product
+            </span>
+          </Link>
+        </div>
       </div>
 
       {/* Products Table */}

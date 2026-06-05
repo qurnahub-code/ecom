@@ -7,6 +7,7 @@ import { CartProvider } from "@/context/CartContext";
 import { ThemeProvider } from "@/components/theme-provider";
 import { NextAuthProvider } from "@/components/providers/NextAuthProvider";
 import { Analytics } from "@vercel/analytics/react";
+import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -75,6 +76,7 @@ export default function RootLayout({
 
               <Footer />
               <Analytics />
+              <WhatsAppButton />
             </CartProvider>
           </NextAuthProvider>
         </ThemeProvider>

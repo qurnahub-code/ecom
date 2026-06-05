@@ -1,7 +1,4 @@
-// src/components/admin/StatusSelector.tsx
-"use client"
-
-import { updateOrderStatus } from "@/modules/admin/actions"
+import { updateOrderStatus } from "@/app/actions/admin"
 import { useState } from "react"
 
 export function StatusSelector({ id, currentStatus }: { id: string, currentStatus: string }) {

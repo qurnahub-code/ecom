@@ -6,6 +6,7 @@ import {
 import Link from "next/link"
 import OrderActionsMenu from "./OrderActionsMenu" // ✅ Import the new menu
 import { updateOrderStatus } from "@/app/actions/admin"
+import { ExportCSVButton } from "@/components/admin/ExportCSVButton"
 
 export const dynamic = 'force-dynamic'
 
@@ -43,9 +44,32 @@ export default async function AdminOrdersPage() {
             Manage customer orders, track status, and process shipments.
           </p>
         </div>
-        <div className="bg-black text-white px-5 py-2.5 rounded-full shadow-lg text-sm font-bold flex items-center gap-2">
-            <ShoppingBag className="w-4 h-4" />
-            {orders.length} Total Orders
+        <div className="flex items-center gap-3">
+           <ExportCSVButton 
+             data={orders.map(o => ({
+               OrderId: o.id,
+               CustomerName: o.guestName,
+               CustomerEmail: o.guestEmail,
+               TotalAmount: Number(o.totalAmount),
+               Status: o.status,
+               PaymentMethod: o.paymentMethod,
+               TransactionId: o.transactionId || "",
+               PaymentPhone: o.paymentPhone || "",
+               IsPaid: o.isPaid,
+               Address: o.address,
+               City: o.city,
+               PostalCode: o.postalCode,
+               Phone: o.phone,
+               Date: o.createdAt.toISOString()
+             }))}
+             filename="store_orders_ledger.csv"
+             label="Export Orders"
+             className="bg-black dark:bg-white text-white dark:text-black hover:opacity-90 border-transparent shadow-lg rounded-full px-5 py-2.5"
+           />
+           <div className="bg-zinc-800 text-white px-5 py-2.5 rounded-full shadow-lg text-sm font-bold flex items-center gap-2">
+               <ShoppingBag className="w-4 h-4" />
+               {orders.length} Total Orders
+           </div>
         </div>
       </div>
 

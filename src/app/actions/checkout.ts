@@ -24,6 +24,9 @@ export async function placeOrder(cartItems: any[], total: number, formData: Form
   const postalCode = formData.get("postalCode") as string
   const phone = formData.get("phone") as string
   const paymentMethod = formData.get("paymentMethod") as string
+  const transactionId = (formData.get("transactionId") as string) || null
+  const paymentPhone = (formData.get("paymentPhone") as string) || null
+  const isPaid = paymentMethod === "CARD" // Credit/Debit card payments are marked as paid
 
   // 3. Create Order in Database
   const order = await prisma.order.create({
@@ -34,6 +37,9 @@ export async function placeOrder(cartItems: any[], total: number, formData: Form
       totalAmount: total,
       status: "PENDING",
       paymentMethod: (paymentMethod as PaymentType) || PaymentType.COD,
+      isPaid,
+      transactionId,
+      paymentPhone,
       address,
       city,
       postalCode,
