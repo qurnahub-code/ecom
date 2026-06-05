@@ -16,8 +16,40 @@ export default async function HomePage() {
     costPrice: product.costPrice ? Number(product.costPrice) : 0,
   }))
 
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "E-Com Platform",
+    "url": "https://voltsstore.vercel.app",
+    "logo": "https://voltsstore.vercel.app/icon.png",
+    "description": "Premium electronics, gaming gadgets, and mechanical keyboard marketplace.",
+    "sameAs": [
+      "https://github.com/qurnahub-code/ecom"
+    ]
+  }
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "E-Com Platform",
+    "url": "https://voltsstore.vercel.app",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://voltsstore.vercel.app/search?query={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+
   return (
     <main className="relative min-h-screen bg-gray-50 dark:bg-zinc-950 text-foreground overflow-hidden transition-colors duration-300">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
       
       {/* --- BACKGROUND ANIMATION --- */}
       <div className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">

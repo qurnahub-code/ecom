@@ -7,11 +7,47 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
+import { Metadata } from "next"
+
 // Force dynamic rendering to ensure fresh data
 export const dynamic = "force-dynamic"
 
 interface PageProps {
   params: Promise<{ id: string }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params
+  const job = await prisma.job.findUnique({
+    where: { id }
+  })
+  
+  if (!job) {
+    return {
+      title: "Job Not Found"
+    }
+  }
+  
+  const title = `${job.title} | Careers at E-Com Platform`
+  const description = job.description.slice(0, 160)
+  
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website"
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description
+    },
+    alternates: {
+      canonical: `/careers/${id}`
+    }
+  }
 }
 
 export default async function JobDetailPage({ params }: PageProps) {
@@ -48,8 +84,35 @@ export default async function JobDetailPage({ params }: PageProps) {
     }
   }
 
+  const jobSchema = {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    "title": rawJob.title,
+    "description": rawJob.description,
+    "datePosted": rawJob.createdAt.toISOString(),
+    "validThrough": rawJob.deadline ? rawJob.deadline.toISOString() : undefined,
+    "employmentType": rawJob.type === "Full-time" ? "FULL_TIME" : rawJob.type === "Part-time" ? "PART_TIME" : "CONTRACTOR",
+    "hiringOrganization": {
+      "@type": "Organization",
+      "name": "E-Com Platform",
+      "sameAs": "https://voltsstore.vercel.app"
+    },
+    "jobLocation": {
+      "@type": "Place",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": rawJob.location,
+        "addressCountry": "PK"
+      }
+    }
+  }
+
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-zinc-950 text-foreground transition-colors duration-300 font-sans overflow-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jobSchema) }}
+      />
       
       {/* --- ANIMATED BACKGROUND --- */}
       <div className="absolute inset-0 w-full h-full pointer-events-none z-0">

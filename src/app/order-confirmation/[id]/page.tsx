@@ -13,7 +13,17 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
   // 1. Fetch the Order directly from DB (Fast & Secure)
   const order = await prisma.order.findUnique({
     where: { id },
-    include: { items: { include: { product: true } } }
+    include: { 
+      items: { 
+        include: { 
+          product: {
+            include: {
+              images: { take: 1 }
+            }
+          } 
+        } 
+      } 
+    }
   })
 
   if (!order) notFound()
@@ -69,7 +79,17 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
               {order.items.map((item) => (
                 <div key={item.id} className="flex justify-between items-center py-4 border-b border-gray-100 dark:border-white/5 last:border-0">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gray-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center text-[10px] text-gray-400">IMG</div>
+                    <div className="w-12 h-12 bg-gray-100 dark:bg-zinc-800 rounded-lg overflow-hidden shrink-0 border border-gray-200 dark:border-white/5 flex items-center justify-center">
+                      {item.product.images?.[0]?.url ? (
+                        <img 
+                          src={item.product.images[0].url} 
+                          alt={item.product.name} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Package className="w-5 h-5 text-gray-400" />
+                      )}
+                    </div>
                     <div>
                       <p className="font-bold text-gray-900 dark:text-white">{item.product.name}</p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Qty: {item.quantity}</p>

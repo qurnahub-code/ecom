@@ -69,5 +69,5 @@ export async function placeOrder(cartItems: any[], total: number, formData: Form
   }).catch(err => console.error("Failed to send order email:", err))
 
   // 5. Redirect to the "Viewer" Page (Success Page)
-  redirect(`/checkout/success/${order.id}`)
+  redirect(`/order-confirmation/${order.id}`)
 }

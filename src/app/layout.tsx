@@ -11,8 +11,41 @@ import { Analytics } from "@vercel/analytics/react";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Modern Ecommerce Platform",
-  description: "Built with Next.js and Prisma",
+  metadataBase: new URL("https://voltsstore.vercel.app"),
+  title: {
+    default: "E-Com Platform | Premium Electronics & Tech Gear",
+    template: "%s | E-Com Platform"
+  },
+  description: "Discover next-level electronics and tech gear. From mechanical keyboards to high-performance gaming gear, shop high-quality products with fast global shipping and secure checkout.",
+  keywords: ["ecommerce", "tech gear", "electronics", "mechanical keyboards", "gaming mouse", "high quality tech"],
+  authors: [{ name: "E-Com Platform Team" }],
+  openGraph: {
+    title: "E-Com Platform | Premium Electronics & Tech Gear",
+    description: "Discover next-level electronics and tech gear. Shop high-quality products with fast global shipping and secure checkout.",
+    url: "https://voltsstore.vercel.app",
+    siteName: "E-Com Platform",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "E-Com Platform | Premium Electronics & Tech Gear",
+    description: "Discover next-level electronics and tech gear. Shop high-quality products with fast global shipping and secure checkout.",
+  },
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({

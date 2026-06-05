@@ -12,8 +12,52 @@ import { formatPrice } from "@/lib/shop-utils"
 import { Package, Check, ShieldCheck, ArrowRight, Sparkles } from "lucide-react"
 import Link from "next/link"
 
+import { Metadata } from "next"
+
 interface ProductPageProps {
   params: Promise<{ id: string }>
+}
+
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+  const { id } = await params
+  const product = await getProductById(id)
+  
+  if (!product) {
+    return {
+      title: "Product Not Found"
+    }
+  }
+  
+  const title = `${product.name} | E-Com Platform`
+  const description = product.description.slice(0, 160)
+  const imageUrl = product.imageUrl || "https://voltsstore.vercel.app/icon.png"
+  
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [
+        {
+          url: imageUrl,
+          width: 800,
+          height: 800,
+          alt: product.name
+        }
+      ],
+      type: "website"
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [imageUrl]
+    },
+    alternates: {
+      canonical: `/products/${id}`
+    }
+  }
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
@@ -62,8 +106,38 @@ export default async function ProductPage({ params }: ProductPageProps) {
     category: product.category
   }
 
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    "image": product.imageUrl || "https://voltsstore.vercel.app/icon.png",
+    "description": product.description,
+    "sku": product.sku || product.id,
+    "brand": {
+      "@type": "Brand",
+      "name": product.brand || "E-Com Platform"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `https://voltsstore.vercel.app/products/${product.id}`,
+      "priceCurrency": "USD",
+      "price": Number(product.price).toFixed(2),
+      "priceValidUntil": "2030-01-01",
+      "itemCondition": "https://schema.org/NewCondition",
+      "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "E-Com Platform"
+      }
+    }
+  }
+
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-zinc-950 text-foreground transition-colors duration-300 font-sans">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
       
       {/* Background */}
       <div className="absolute inset-0 w-full h-full pointer-events-none z-0 fixed">
