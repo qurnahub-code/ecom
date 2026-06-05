@@ -8,7 +8,7 @@ export function WhatsAppButton() {
   const [showTooltip, setShowTooltip] = useState(false)
   
   // Replace with the client's actual support number
-  const phoneNumber = "923001234567"
+  const phoneNumber = "923264500909"
   const message = encodeURIComponent("Hi Volts Store! I need assistance with my shopping.")
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`
 

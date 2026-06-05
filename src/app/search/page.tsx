@@ -2,6 +2,7 @@ import { Metadata } from "next"
 import Link from "next/link"
 import { Search, Filter, ArrowLeft, ArrowRight, SlidersHorizontal, X } from "lucide-react"
 import { ProductCard } from "@/components/products/ProductCard"
+import { searchProducts } from "@/app/actions"
 
 export const metadata: Metadata = {
   title: "Search Products | Volts Store",
@@ -29,21 +30,32 @@ interface SearchResponse {
   }
 }
 
-// Fetch Logic
+// Fetch Logic (Directly querying the database on the server)
 async function getProducts(searchParams: any): Promise<SearchResponse> {
-  const params = new URLSearchParams()
-  if (searchParams?.q) params.set("q", searchParams.q as string)
-  if (searchParams?.category) params.set("category", searchParams.category as string)
-  if (searchParams?.minPrice) params.set("minPrice", searchParams.minPrice as string)
-  if (searchParams?.maxPrice) params.set("maxPrice", searchParams.maxPrice as string)
-  if (searchParams?.sort) params.set("sort", searchParams.sort as string)
-  if (searchParams?.page) params.set("page", searchParams.page as string)
+  const query = (searchParams?.q as string) || undefined
+  const category = (searchParams?.category as string) || undefined
+  const minPrice = searchParams?.minPrice ? Number(searchParams.minPrice) : undefined
+  const maxPrice = searchParams?.maxPrice ? Number(searchParams.maxPrice) : undefined
+  const sort = (searchParams?.sort as string) || "newest"
+  const page = Number(searchParams?.page) || 1
 
-  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
-  const res = await fetch(`${baseUrl}/api/search?${params.toString()}`, { cache: "no-store" })
+  const results = await searchProducts({
+    query,
+    category,
+    minPrice,
+    maxPrice,
+    sort,
+    page,
+    limit: 12
+  })
 
-  if (!res.ok) throw new Error("Failed to fetch products")
-  return res.json()
+  return {
+    data: results.data.map((p: any) => ({
+      ...p,
+      price: typeof p.price === 'object' ? Number(p.price) : p.price
+    })),
+    meta: results.meta
+  }
 }
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>

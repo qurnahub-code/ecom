@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useCart } from "@/context/CartContext"
 import { validateCoupon } from "@/app/actions/coupon" // Ensure this action exists
 import Link from "next/link"
+import { formatPrice, SITE_CONFIG } from "@/lib/shop-utils"
 import { 
   Trash2, Minus, Plus, ShoppingBag, ArrowRight, 
   Tag, Truck, ArrowLeft, PackageCheck, Loader2, AlertCircle 
@@ -19,7 +20,7 @@ export default function CartPage() {
   const [couponMessage, setCouponMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   // Free Shipping Logic (Configurable)
-  const freeShippingThreshold = 500
+  const freeShippingThreshold = SITE_CONFIG.freeShippingThreshold
   const progress = Math.min((cartTotal / freeShippingThreshold) * 100, 100)
   const remainingForFreeShip = Math.max(freeShippingThreshold - cartTotal, 0)
 
@@ -108,7 +109,7 @@ export default function CartPage() {
                <div className="flex items-center gap-3 mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                   <Truck className="w-5 h-5 text-indigo-500" />
                   {remainingForFreeShip > 0 ? (
-                    <span>Add <span className="text-indigo-600 dark:text-indigo-400 font-bold">${remainingForFreeShip.toFixed(2)}</span> more for free shipping</span>
+                    <span>Add <span className="text-indigo-600 dark:text-indigo-400 font-bold">{formatPrice(remainingForFreeShip)}</span> more for free shipping</span>
                   ) : (
                     <span className="text-green-600 dark:text-green-400">You've unlocked Free Shipping! 🎉</span>
                   )}
@@ -142,7 +143,7 @@ export default function CartPage() {
                         <h3 className="font-bold text-lg text-gray-900 dark:text-white leading-tight">{item.name}</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{item.category || "General"}</p>
                       </div>
-                      <p className="font-bold text-lg text-gray-900 dark:text-white">${(item.price * item.quantity).toFixed(2)}</p>
+                      <p className="font-bold text-lg text-gray-900 dark:text-white">{formatPrice(item.price * item.quantity)}</p>
                     </div>
                     
                     {/* Controls */}
@@ -222,13 +223,13 @@ export default function CartPage() {
                 <div className="space-y-3 mb-6 text-sm">
                   <div className="flex justify-between text-gray-600 dark:text-gray-400">
                     <span>Subtotal</span>
-                    <span>${cartTotal.toFixed(2)}</span>
+                    <span>{formatPrice(cartTotal)}</span>
                   </div>
                   
                   {appliedCoupon && (
                     <div className="flex justify-between text-green-600 dark:text-green-400 animate-in fade-in">
                       <span>Discount ({appliedCoupon.code})</span>
-                      <span>-${appliedCoupon.discount.toFixed(2)}</span>
+                      <span>-{formatPrice(appliedCoupon.discount)}</span>
                     </div>
                   )}
 
@@ -241,7 +242,7 @@ export default function CartPage() {
                   
                   <div className="border-t border-gray-100 dark:border-white/10 pt-4 flex justify-between items-end">
                     <span className="text-gray-900 dark:text-white font-bold">Total</span>
-                    <span className="text-2xl font-black text-gray-900 dark:text-white">${finalTotal.toFixed(2)}</span>
+                    <span className="text-2xl font-black text-gray-900 dark:text-white">{formatPrice(finalTotal)}</span>
                   </div>
                 </div>
 

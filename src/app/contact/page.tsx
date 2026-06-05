@@ -118,7 +118,7 @@ export default function ContactPage() {
                     <Phone className="w-5 h-5" />
                 </div>
                 <h3 className="font-bold text-gray-900 dark:text-white">Phone Support</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">+92 (300) 123-4567</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">+92 (326) 450-0909</p>
                 <div className="flex items-center gap-1 mt-2 text-xs font-medium text-green-600 dark:text-green-400">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Available Now
                 </div>

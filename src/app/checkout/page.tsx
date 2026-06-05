@@ -10,6 +10,7 @@ import {
   Loader2, CreditCard, Truck, MapPin, Phone, 
   AlertCircle, CheckCircle, Smartphone, Banknote, X, ShieldCheck
 } from "lucide-react"
+import { formatPrice } from "@/lib/shop-utils"
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -425,7 +426,7 @@ export default function CheckoutPage() {
                           <AlertCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                           <div className="text-sm text-muted-foreground">
                              <p className="font-bold text-foreground">Instructions:</p>
-                             Send <strong>PKR {cartTotal.toLocaleString()}</strong> to <span className="font-mono bg-muted px-1 rounded">0300-1234567</span>.
+                             Send <strong>{formatPrice(cartTotal)}</strong> to <span className="font-mono bg-muted px-1 rounded">0326-4500909</span>.
                              <br/>Enter the sender details below for verification.
                           </div>
                       </div>
@@ -477,15 +478,15 @@ export default function CheckoutPage() {
                       <p className="font-medium text-sm">{item.name}</p>
                       <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                     </div>
-                    <p className="font-mono text-sm">${(item.price * item.quantity).toLocaleString()}</p>
+                    <p className="font-mono text-sm">{formatPrice(item.price * item.quantity)}</p>
                   </div>
                 ))}
               </div>
 
               <div className="space-y-3 pt-4 border-t border-border text-sm">
-                <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>${cartTotal.toLocaleString()}</span></div>
+                <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>{formatPrice(cartTotal)}</span></div>
                 <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span>Free</span></div>
-                <div className="flex justify-between text-xl font-bold pt-4 border-t border-border"><span>Total</span><span>${cartTotal.toLocaleString()}</span></div>
+                <div className="flex justify-between text-xl font-bold pt-4 border-t border-border"><span>Total</span><span>{formatPrice(cartTotal)}</span></div>
               </div>
 
               <button
