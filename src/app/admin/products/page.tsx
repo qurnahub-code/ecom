@@ -101,9 +101,16 @@ export default async function AdminProductsPage() {
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
                           <span className="font-semibold text-foreground text-base">{product.name}</span>
-                          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded w-fit mt-1 border border-border">
-                            {product.category || "Uncategorized"}
-                          </span>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border">
+                              {product.category || "Uncategorized"}
+                            </span>
+                            {product.isAffiliate && (
+                              <span className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
+                                Affiliate
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </td>
 

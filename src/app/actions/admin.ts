@@ -70,6 +70,10 @@ export async function createProduct(formData: FormData) {
     // [NEW] Handle Date Parsing safely (avoid crashes on empty/blank dates)
     const expiryRaw = formData.get("expiryDate") as string
     const expiryDate = (expiryRaw && expiryRaw.trim() !== "") ? new Date(expiryRaw) : null
+
+    // [NEW] Affiliate Fields
+    const isAffiliate = formData.get("isAffiliate") === "on"
+    const affiliateLink = formData.get("affiliateLink") as string || null
     
     // Handle Image Upload
     const file = formData.get('image') as unknown as File
@@ -82,6 +86,8 @@ export async function createProduct(formData: FormData) {
         taxRate, minStock, unit, vendor, tags,
         origin, 
         expiryDate,
+        isAffiliate,
+        affiliateLink,
         images: imagePath ? {
           create: [{ url: imagePath, altText: name }]
         } : undefined
@@ -126,6 +132,10 @@ export async function updateProductDetails(formData: FormData) {
     const expiryRaw = formData.get("expiryDate") as string
     const expiryDate = (expiryRaw && expiryRaw.trim() !== "") ? new Date(expiryRaw) : null
 
+    // [NEW] Affiliate Fields
+    const isAffiliate = formData.get("isAffiliate") === "on"
+    const affiliateLink = formData.get("affiliateLink") as string || null
+
     // Handle Image Upload
     const file = formData.get('image') as unknown as File
     const newImagePath = await handleImageUpload(file)
@@ -140,7 +150,9 @@ export async function updateProductDetails(formData: FormData) {
           sku, brand, barcode, qrCode, costPrice,
           taxRate, minStock, unit, vendor, tags,
           origin,
-          expiryDate
+          expiryDate,
+          isAffiliate,
+          affiliateLink
         }
       })
 

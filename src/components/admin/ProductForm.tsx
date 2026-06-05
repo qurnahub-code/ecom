@@ -193,6 +193,43 @@ export function ProductForm({ initialData }: ProductFormProps) {
              </div>
           </div>
 
+          {/* 3. AFFILIATE / DROP-SHIPPING DETAILS */}
+          <div className="bg-card rounded-2xl shadow-sm border border-border p-8">
+             <h2 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
+               <Globe className="w-5 h-5 text-primary" /> Affiliate / Drop-Shipping
+             </h2>
+             <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                   <input 
+                     type="checkbox" 
+                     id="isAffiliate" 
+                     name="isAffiliate" 
+                     defaultChecked={initialData?.isAffiliate}
+                     className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                   />
+                   <label htmlFor="isAffiliate" className="text-sm font-bold text-foreground cursor-pointer select-none">
+                     This is an Affiliate / Drop-shipped Product
+                   </label>
+                </div>
+                <div>
+                   <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Supplier / Affiliate Link</label>
+                   <div className="relative">
+                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <input 
+                        name="affiliateLink" 
+                        defaultValue={initialData?.affiliateLink || ""} 
+                        type="url" 
+                        placeholder="https://amazon.com/dp/B0..." 
+                        className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-3 text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                      />
+                   </div>
+                   <p className="text-[10px] text-muted-foreground mt-1.5 ml-1">
+                     Provide the link to the product on the supplier's website for easy order fulfillment.
+                   </p>
+                </div>
+             </div>
+          </div>
+
         </div>
 
         {/* --- RIGHT COLUMN (1/3) --- */}

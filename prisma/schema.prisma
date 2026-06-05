@@ -83,6 +83,10 @@ model Product {
   origin      String   @default("Local") 
   expiryDate  DateTime?
 
+  // Affiliate / Drop-shipping Fields
+  isAffiliate Boolean  @default(false)
+  affiliateLink String?
+
   images      ProductImage[] 
   orderItems  OrderItem[] 
   wishlistedBy WishlistItem[]

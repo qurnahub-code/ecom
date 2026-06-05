@@ -131,10 +131,27 @@ export default async function OrderDetailsPage({ params }: PageProps) {
                                       <Package className="w-8 h-8 text-gray-400 dark:text-zinc-600" /> 
                                   </div>
                                   <div>
-                                      <p className="font-bold text-zinc-900 dark:text-white text-lg">{item.product.name}</p>
+                                      <div className="flex flex-wrap items-center gap-2">
+                                          <p className="font-bold text-zinc-900 dark:text-white text-lg">{item.product.name}</p>
+                                          {item.product.isAffiliate && (
+                                              <span className="px-2 py-0.5 bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                                  Affiliate
+                                              </span>
+                                          )}
+                                      </div>
                                       <p className="text-sm text-zinc-500 dark:text-zinc-400 font-mono mt-1">
                                         {formatPrice(Number(item.price))} <span className="text-zinc-400">x</span> {item.quantity}
                                       </p>
+                                      {item.product.isAffiliate && item.product.affiliateLink && (
+                                          <a 
+                                            href={item.product.affiliateLink} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 font-bold underline flex items-center gap-1 mt-2 w-fit bg-blue-500/5 hover:bg-blue-500/10 border border-blue-500/10 px-2.5 py-1 rounded-lg transition-colors"
+                                          >
+                                            Fulfill Order at Supplier ↗
+                                          </a>
+                                      )}
                                   </div>
                               </div>
                               <div className="text-right pl-4 border-l border-gray-200 dark:border-zinc-800 sm:border-0 sm:pl-0">
