@@ -32,6 +32,13 @@ export function Navbar() {
             <span className="font-black text-lg tracking-tight hidden sm:block">E-Com Platform</span>
           </Link>
 
+          {/* Desktop Nav Links */}
+          <div className="hidden md:flex items-center gap-6 text-sm font-semibold ml-4">
+            <Link href="/products" className="text-gray-300 hover:text-white transition-colors">Shop</Link>
+            <Link href="/careers" className="text-gray-300 hover:text-white transition-colors">Careers</Link>
+            <Link href="/blog" className="text-gray-300 hover:text-white transition-colors">Blog</Link>
+          </div>
+
           {/* Smart Search Bar */}
           <div className="hidden md:flex flex-1 max-w-md mx-8 justify-center">
              <SmartSearchBar />
@@ -128,6 +135,8 @@ export function Navbar() {
              <SmartSearchBar />
            </div>
            <Link href="/products" className="block text-sm font-bold text-gray-300">Shop All</Link>
+           <Link href="/careers" className="block text-sm font-bold text-gray-300">Careers</Link>
+           <Link href="/blog" className="block text-sm font-bold text-gray-300">Blog</Link>
            <Link href="/dashboard" className="block text-sm font-bold text-gray-300">My Dashboard</Link>
         </div>
       )}

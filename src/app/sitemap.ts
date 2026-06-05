@@ -25,6 +25,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Sitemap Jobs Fetch Error:", e)
   }
 
+  // 2.5. Fetch all published blog posts
+  let posts: any[] = []
+  try {
+    posts = await prisma.blogPost.findMany({
+      where: { published: true },
+      select: { slug: true, updatedAt: true }
+    })
+  } catch (e) {
+    console.error("Sitemap Blog Posts Fetch Error:", e)
+  }
+
   // 3. Define Static Routes
   const staticRoutes = [
     '',
@@ -32,6 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/contact',
     '/careers',
     '/products',
+    '/blog',
     '/privacy',
     '/terms',
   ].map((route) => ({
@@ -57,5 +69,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  return [...staticRoutes, ...productRoutes, ...jobRoutes]
+  // 6. Map Dynamic Blog URLs
+  const blogRoutes = posts.map((post) => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: new Date(post.updatedAt),
+    changeFrequency: 'weekly' as const,
+    priority: 0.6,
+  }))
+
+  return [...staticRoutes, ...productRoutes, ...jobRoutes, ...blogRoutes]
 }

@@ -11,7 +11,8 @@ import {
   Truck, 
   Store,
   ClipboardList,
-  Activity // Added for the distinct "Overview" icon
+  Activity, // Added for the distinct "Overview" icon
+  BookOpen
 } from "lucide-react"
 
 export default function AdminSidebar() {
@@ -86,6 +87,12 @@ export default function AdminSidebar() {
         <Link href="/admin/jobs" className={linkClass("/admin/jobs")}>
           <Briefcase className="w-5 h-5" />
           Job Postings
+        </Link>
+
+        {/* Blog Manager */}
+        <Link href="/admin/blog" className={linkClass("/admin/blog")}>
+          <BookOpen className="w-5 h-5" />
+          Blog Manager
         </Link>
       </nav>
       
