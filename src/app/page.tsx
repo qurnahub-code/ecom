@@ -127,18 +127,36 @@ export default async function HomePage() {
         </section>
 
         {/* --- BANNER --- */}
-        <section className="relative py-24 overflow-hidden bg-gray-100 text-black dark:bg-zinc-900 dark:text-white">
-          <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 mix-blend-overlay"></div>
-          <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-[100px] animate-pulse bg-indigo-300/20 dark:bg-indigo-500/20"></div>
-          
-          <div className="relative z-10 max-w-4xl mx-auto text-center px-4">
-            <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-4 text-black dark:text-white">
-              NEXT LEVEL <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-cyan-400">GEAR</span>
-            </h2>
-            <div className="flex justify-center gap-4">
-               <Link href="/search?category=Electronics" className="px-8 py-3 font-bold rounded-full hover:scale-105 transition-transform shadow-lg bg-black text-white dark:bg-white dark:text-black">
-                 Shop Electronics
-               </Link>
+        <section className="max-w-[2000px] mx-auto px-4 py-8">
+          <div className="relative overflow-hidden rounded-3xl bg-brand-midnight text-white py-20 px-8 border border-white/10 shadow-2xl flex flex-col justify-between min-h-[350px]">
+            {/* Background elements */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f2e_1px,transparent_1px),linear-gradient(to_bottom,#1f1f2e_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-25 pointer-events-none" />
+            <div className="absolute -top-1/2 -right-1/4 w-[400px] h-[400px] rounded-full blur-[120px] bg-brand-purple/20 pointer-events-none" />
+            <div className="absolute -bottom-1/2 -left-1/4 w-[400px] h-[400px] rounded-full blur-[120px] bg-brand-blue/20 pointer-events-none" />
+            
+            {/* Top Left */}
+            <div className="relative z-10 flex items-center gap-1.5 self-start text-xs font-heading font-black tracking-widest text-brand-purple uppercase">
+              <span>⚡</span> Volts Store
+            </div>
+            
+            {/* Center */}
+            <div className="relative z-10 my-8 text-center">
+              <h2 className="text-4xl md:text-6xl font-heading font-black tracking-tighter uppercase leading-none mb-3">
+                Build Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-purple via-indigo-300 to-brand-blue drop-shadow-[0_0_15px_rgba(139,92,246,0.25)]">Dream Setup</span>
+              </h2>
+            </div>
+            
+            {/* Bottom & CTA Badge */}
+            <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6 pt-6 border-t border-white/5">
+              <div className="text-xs sm:text-sm font-semibold tracking-wider text-gray-400 font-heading">
+                Mechanical Keyboards &bull; Monitors &bull; Audio Gear &bull; Studio Accessories
+              </div>
+              <Link 
+                href="/products" 
+                className="px-6 py-2.5 bg-brand-purple text-white hover:bg-brand-purple/90 transition-all font-heading font-black text-xs uppercase tracking-widest rounded-full shadow-[0_0_15px_rgba(139,92,246,0.3)] hover:shadow-[0_0_20px_rgba(139,92,246,0.5)] flex items-center gap-2"
+              >
+                Shop Now <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </div>
         </section>

@@ -11,11 +11,16 @@ export function Footer() {
           
           {/* Column 1: Company Info */}
           <div className="space-y-6">
-            <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
-              Volts Store
-            </h3>
+            <div className="flex items-center gap-2 group">
+              <div className="w-6 h-6 bg-brand-purple rounded-md flex items-center justify-center text-white shadow-[0_0_10px_rgba(139,92,246,0.3)]">
+                <span className="text-sm font-black leading-none">⚡</span>
+              </div>
+              <h3 className="font-heading font-black text-lg tracking-wider uppercase text-gray-900 dark:text-white">
+                Volts Store
+              </h3>
+            </div>
             <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-              Your premium workspace destination for mechanical keyboards, monitors, audio gear, and studio accessories.
+              Premium workspace and tech essentials designed to power your productivity. Curating mechanical keyboards, monitors, audio gear, and studio accessories.
             </p>
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">

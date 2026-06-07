@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Sora } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -9,20 +9,28 @@ import { NextAuthProvider } from "@/components/providers/NextAuthProvider";
 import { Analytics } from "@vercel/analytics/react";
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ 
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
+
+const sora = Sora({
+  subsets: ["latin"],
+  variable: "--font-sora",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://voltsstore.vercel.app"),
   title: {
-    default: "Volts Store | Premium Workspace Tech Gear",
+    default: "Volts Store | Premium Workspace & Tech Essentials",
     template: "%s | Volts Store"
   },
-  description: "Discover next-level mechanical keyboards, high-performance gaming gear, monitors, and workspace accessories. Shop high-quality products with fast shipping and secure checkout.",
-  keywords: ["volts store", "workspace tech", "mechanical keyboards", "gaming mouse", "audiophile gear", "desk accessories"],
+  description: "Discover premium mechanical keyboards, monitors, audio gear, and studio accessories designed for creators, professionals, and gamers.",
+  keywords: ["volts store", "workspace tech", "mechanical keyboards", "ultrawide monitors", "audiophile headphones", "desk accessories", "studio setup"],
   authors: [{ name: "Volts Store Team" }],
   openGraph: {
-    title: "Volts Store | Premium Workspace Tech Gear",
-    description: "Discover next-level mechanical keyboards, high-performance gaming gear, monitors, and workspace accessories.",
+    title: "Volts Store | Premium Workspace & Tech Essentials",
+    description: "Discover premium mechanical keyboards, monitors, audio gear, and studio accessories designed for creators, professionals, and gamers.",
     url: "https://voltsstore.vercel.app",
     siteName: "Volts Store",
     locale: "en_US",
@@ -30,8 +38,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Volts Store | Premium Workspace Tech Gear",
-    description: "Discover next-level mechanical keyboards, high-performance gaming gear, monitors, and workspace accessories.",
+    title: "Volts Store | Premium Workspace & Tech Essentials",
+    description: "Discover premium mechanical keyboards, monitors, audio gear, and studio accessories designed for creators, professionals, and gamers.",
   },
   alternates: {
     canonical: "/",
@@ -59,7 +67,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} min-h-screen bg-background text-foreground flex flex-col`}>
+      <body className={`${inter.variable} ${sora.variable} font-sans min-h-screen bg-background text-foreground flex flex-col`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
